@@ -60,6 +60,10 @@ public:
 				field.vel[i][j].resize(2);
 				field.vel[i][j][0] = (1-2) * field.uLB * (1 + 1e-4*sin(i/(field.width-1)*0.5))/10; 
 				field.vel[i][j][1] = (1-2) * field.uLB * (1 + 1e-4*sin(j/(field.height-1)*0.5))/10;
+				if(j == field.height - 1 || j == 0){
+					field.vel[i][j][0] = 0;
+					field.vel[i][j][1] = 0;
+				}
 			 }
 		}
 		std::cout << "fin\n";
@@ -112,12 +116,11 @@ public:
 	void sim_step() {
 
 		// Right wall: outflow condition
-		for(int y = 1; y < field.height-1; y++){
+		for(int y = 0; y < field.height; y++){
 			field.f_in[6][field.width-1][y] = field.f_in[6][field.width-2][y];
 			field.f_in[7][field.width-1][y] = field.f_in[7][field.width-2][y];
 			field.f_in[8][field.width-1][y] = field.f_in[8][field.width-2][y];
 		}
-		
 		/*
 		//Up and down outflow
 		for(int x = 0; x < field.width; x++){
@@ -134,6 +137,7 @@ public:
 		// Compute density and velocity
 		for(int i = 0; i < field.width; i++){
 			for(int j = 0; j < field.height; j++){
+				double prev1 = field.vel[i][j][0], prev2 = field.vel[i][j][1];
 				field.density[i][j] = 0;
 				field.vel[i][j][0] = 0;
 				field.vel[i][j][1] = 0;
@@ -146,9 +150,18 @@ public:
 				field.vel[i][j][1] /= field.density[i][j];
 			}
 		}
+		/*
+		//up and down deletion
+		for(int w = 0; w < field.width; w++){
+			field.vel[w][0][1] = 1e-8;
+			double sum1 = field.f_in[8][w][0] + field.f_in[5][w][0] + field.f_in[2][w][0];
+			double sum2 = field.f_in[7][w][0] + field.f_in[4][w][0] + field.f_in[1][w][0];
+			field.density[w][0] = 1/(1-field.vel[w][0][1]) * (sum1 + 2 * sum2);
+		}
+		*/
 		// Left wall: inflow condition
 		for(int y = 0; y < field.height; y++){
-			field.vel[0][y][0] = (1-2) * field.uLB * (1 + 1e-4*sin(y/(field.height-1)*2*3.14));
+			field.vel[0][y][0] = -(1-2) * field.uLB * (1 + 1e-4*sin(y/(field.height-1)*2*3.14));
 			//field.vel[0][y][1] = (1-2) * field.uLB * (1 + 1e-4*sin(y/(field.height-1)*2*3.14));
 			//field.vel[0][y][0] = 0.02 + (y%10)*0.002;
 			field.vel[0][y][1] = (1-2) * field.uLB * (1 + 1e-4*sin(y/(field.height-1)*2*3.14));
