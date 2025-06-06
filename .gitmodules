@@ -1,3 +1,0 @@
-[submodule "cuda-version/glfw"]
-	path = cuda-version/glfw
-	url = https://github.com/glfw/glfw
