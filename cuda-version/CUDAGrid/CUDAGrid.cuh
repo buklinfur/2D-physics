@@ -20,11 +20,20 @@ __global__ void cuda_collision(float* f_in, float* f_out, float* density, float*
 
 __global__ void cuda_streaming(float* f_in, float* f_out, float* e);
 
-class field{
-private:
-    
-public:
+__global__ void convert_visual(float *vel, unsigned char *visual_buffer, float max);
 
+__global__ void bounce_back(float* f_in, float* f_out, float *obstacle, int obstacle_size);
+
+class Field{
+private:
+    int obstacle_size;
+    float *e, *weights, *obstacle;
+    float *f_in, *f_out, *vel, *density;
+    unsigned char *visual_buffer;
+public:
+    Field();
+    void step();
+    unsigned char* get_visual();
 };
 
 
