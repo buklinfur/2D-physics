@@ -32,6 +32,8 @@ private:
     unsigned char *visual_buffer;
 public:
     Field();
+    ~Field();
+    
     void step();
     unsigned char* get_visual();
 };

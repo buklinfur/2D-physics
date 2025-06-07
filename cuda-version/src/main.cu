@@ -3,7 +3,6 @@
 
 
 int main() {
-   
     Field pivo;
 	GLVisual riba("ok computer", 1920, 1080);
     void *cuda_buffer;

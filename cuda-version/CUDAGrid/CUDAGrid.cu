@@ -5,9 +5,6 @@
 
 using namespace std;
 
-
-
-
 #define uLB 0.04
 #define Re 10
 #define r ((FIELD_HEIGHT-1)/9)
@@ -25,7 +22,7 @@ __global__ void cuda_density_velocity(float* f_in, float* vel, float* density, f
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     
-    //if (x >= FIELD_WIDTH || y >= FIELD_HEIGHT) return;
+    if (x >= FIELD_WIDTH || y >= FIELD_HEIGHT) return;
 
     int vel_cord = y*FIELD_WIDTH*2 + x*2;
     int density_cord = y*FIELD_WIDTH + x;
@@ -152,7 +149,7 @@ Field::Field(){
         for (int w = 0; w < FIELD_WIDTH; w++) {
             for (int h = 0; h < FIELD_HEIGHT; h++){
                 double usqr = 3.0/2 * (temp_vel[w*2 + h*FIELD_WIDTH*2 + 0]*temp_vel[w*2 + h*FIELD_WIDTH*2 + 0] + temp_vel[w*2 + h*FIELD_WIDTH*2 + 1]*temp_vel[w*2 + h*FIELD_WIDTH*2 + 1]);
-                double cu = 3 * (host_e[i*2 + 0]*temp_vel[w*2 + h*FIELD_WIDTH*2 + 0] + host_e[i*2 + 1]*temp_vel[w*2 + h*FIELD_WIDTH*2 + 0]);
+                double cu = 3 * (host_e[i*2 + 0]*temp_vel[w*2 + h*FIELD_WIDTH*2 + 0] + host_e[i*2 + 1]*temp_vel[w*2 + h*FIELD_WIDTH*2 + 1]);
                 temp_f_in[w*9 + h*FIELD_WIDTH*9 + i] = 1 * host_weights[i] * (1 + cu + 0.5*cu*cu - usqr);
             }
         }
@@ -197,6 +194,22 @@ Field::Field(){
     cudaMemcpy(e, host_e, 9 * 2 * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(weights, host_weights, 9*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(obstacle, arr_obstacle, obstacle_size*2*sizeof(float), cudaMemcpyHostToDevice);
+
+    delete [] temp_f_in;
+    delete [] temp_f_out;
+    delete [] temp_vel;
+    delete [] temp_density;
+}
+
+Field::~Field(){
+    if (f_in) cudaFree(f_in);
+    if (f_out) cudaFree(f_out);
+    if (vel) cudaFree(vel);
+    if (density) cudaFree(density);
+    if (e) cudaFree(e);
+    if (weights) cudaFree(weights);
+    if (visual_buffer) cudaFree(visual_buffer);
+    if (obstacle) cudaFree(obstacle);
 }
 
 void Field::step(){

@@ -7,11 +7,14 @@
 class GLVisual{
 private:
     GLuint textureID;
-    cudaGraphicsResource* cuda_tex_resource;
-    GLFWwindow* window;
+    cudaGraphicsResource* cuda_tex_resource = nullptr;
+    GLFWwindow* window = nullptr;
     int WIDTH, HEIGHT;
+
 public:
     GLVisual(char name[], int width, int height);
+    ~GLVisual();
+
     void draw(void *cuda_buffer);
     bool alive();
 };

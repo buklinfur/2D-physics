@@ -42,6 +42,19 @@ GLVisual::GLVisual(char name[], int width, int height) :
     }
 }
 
+GLVisual::~GLVisual() {
+    if (cuda_tex_resource) {
+        cudaGraphicsUnregisterResource(cuda_tex_resource);
+        cuda_tex_resource = nullptr;
+    }
+
+    if (window) {
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        window = nullptr;
+    }
+}
+
 void GLVisual::draw(void *cuda_buffer){
     glClear(GL_COLOR_BUFFER_BIT);
     // Подключаем ресурс CUDA

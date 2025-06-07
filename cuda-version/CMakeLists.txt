@@ -13,7 +13,7 @@ find_package(GLEW REQUIRED)
 file(GLOB source_files "src/*.cu")
 
 add_library(CUDAGrid STATIC
-    CUDAGrid/cuda_sim_step.cu
+    CUDAGrid/CUDAGrid.cu
     CUDAGrid/CUDAGrid.cuh
     )
 target_compile_features(CUDAGrid PUBLIC cxx_std_17)
