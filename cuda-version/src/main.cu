@@ -3,8 +3,8 @@
 
 
 int main() {
-    Field pivo;
-	GLVisual riba("ok computer", 1920, 1080);
+    Field pivo(1920, 1080);
+	GLVisual riba("ok computer", 1920, 1080, 0);
     void *cuda_buffer;
 
 	while(riba.alive()){

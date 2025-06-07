@@ -1,6 +1,6 @@
 #include "CUDADraw.cuh"
 #include <iostream>
-GLVisual::GLVisual(char name[], int width, int height) : 
+GLVisual::GLVisual(char name[], int width, int height, int vsync) : 
     WIDTH(width), HEIGHT(height), window(nullptr), cuda_tex_resource(nullptr) {
     
     // Initialize GLFW
@@ -18,6 +18,7 @@ GLVisual::GLVisual(char name[], int width, int height) :
     }
     
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(vsync);
     
     // Initialize GLEW
     glewExperimental = GL_TRUE;
