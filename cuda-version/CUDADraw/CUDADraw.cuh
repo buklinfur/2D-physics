@@ -12,7 +12,7 @@ private:
     int WIDTH, HEIGHT;
 
 public:
-    GLVisual(char name[], int width, int height);
+    GLVisual(char name[], int width, int height,int vsync=1);
     ~GLVisual();
 
     void draw(void *cuda_buffer);

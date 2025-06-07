@@ -1,12 +1,6 @@
 #ifndef CUDAGrid
 #define CUDAGrid
 
-#define FIELD_WIDTH 1920
-#define FIELD_HEIGHT 1080
-#define BLOCK_X 32
-#define BLOCK_Y 32
-#define BLOCKS_WIDTH (FIELD_WIDTH / BLOCK_X)
-#define BLOCKS_HEIGHT (FIELD_HEIGHT / BLOCK_Y)
 
 __device__ float equilibrium(float density, float weight, float e1, float e2, float vel1, float vel2);
 
@@ -30,8 +24,9 @@ private:
     float *e, *weights, *obstacle;
     float *f_in, *f_out, *vel, *density;
     unsigned char *visual_buffer;
+    dim3 blockSize, gridSize;
 public:
-    Field();
+    Field(size_t width, size_t height, int block_size=32);
     ~Field();
     
     void step();
