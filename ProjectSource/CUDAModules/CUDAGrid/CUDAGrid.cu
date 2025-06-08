@@ -62,42 +62,43 @@ __global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weig
         vel_cord = id * gpu_width * 2;
         f_in_cord = id * gpu_width * 9;
         density_cord = id * gpu_width;
-        u = gpu_uLB * (1 + 1e-4f * sin(id * 2 * 3.14f / (gpu_height - 1)));
+        u = gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_height - 1)));
         v = 0;
     } else if (flow_dir == 1) {
         vel_cord = id * gpu_width * 2 + (gpu_width - 1) * 2;
         f_in_cord = id * gpu_width * 9 + (gpu_width - 1) * 9;
         density_cord = id * gpu_width + (gpu_width - 1);
-        u = -gpu_uLB * (1 + 1e-4f * sin(id * 2 * 3.14f / (gpu_height - 1)));
+        u = -2*gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_height - 1)));
         v = 0;
     } else if (flow_dir == 2) {
-        vel_cord = id * 2;
-        f_in_cord = id * 9;
-        density_cord = id;
+        vel_cord = (gpu_height-1)*gpu_width*2 + id * 2;
+        f_in_cord = (gpu_height-1)*gpu_width*9 + id * 9;
+        density_cord = (gpu_height-1)*gpu_width + id;
         u = 0;
-        v = gpu_uLB * (1 + 1e-4f * sin(id * 2 * 3.14f / (gpu_width - 1)));
+        v = -gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_width - 1)));
     } else {
         vel_cord = (gpu_height - 1) * gpu_width * 2 + id * 2;
         f_in_cord = (gpu_height - 1) * gpu_width * 9 + id * 9;
         density_cord = (gpu_height - 1) * gpu_width + id;
         u = 0;
-        v = -gpu_uLB * (1 + 1e-4f * sin(id * 2 * 3.14f / (gpu_width - 1)));
+        v = gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_width - 1)));
     }
 
     vel[vel_cord + 0] = u;
     vel[vel_cord + 1] = v;
-    float sum1 = f_in[f_in_cord + (flow_dir == 0 ? 3 : flow_dir == 1 ? 6 : flow_dir == 2 ? 1 : 7)] +
-                 f_in[f_in_cord + (flow_dir == 0 ? 4 : flow_dir == 1 ? 7 : flow_dir == 2 ? 2 : 8)] +
-                 f_in[f_in_cord + (flow_dir == 0 ? 5 : flow_dir == 1 ? 8 : flow_dir == 2 ? 3 : 6)];
-    float sum2 = f_in[f_in_cord + (flow_dir == 0 ? 6 : flow_dir == 1 ? 3 : flow_dir == 2 ? 7 : 1)] +
-                 f_in[f_in_cord + (flow_dir == 0 ? 7 : flow_dir == 1 ? 4 : flow_dir == 2 ? 8 : 2)] +
-                 f_in[f_in_cord + (flow_dir == 0 ? 8 : flow_dir == 1 ? 5 : flow_dir == 2 ? 6 : 3)];
+    float sum1 = f_in[f_in_cord + (flow_dir == 0 ? 3 : flow_dir == 1 ? 3 : flow_dir == 2 ? 1 : 7)] +
+                 f_in[f_in_cord + (flow_dir == 0 ? 4 : flow_dir == 1 ? 4 : flow_dir == 2 ? 4 : 8)] +
+                 f_in[f_in_cord + (flow_dir == 0 ? 5 : flow_dir == 1 ? 5 : flow_dir == 2 ? 7 : 6)];
+    float sum2 = f_in[f_in_cord + (flow_dir == 0 ? 6 : flow_dir == 1 ? 0 : flow_dir == 2 ? 0 : 1)] +
+                 f_in[f_in_cord + (flow_dir == 0 ? 7 : flow_dir == 1 ? 1 : flow_dir == 2 ? 3 : 2)] +
+                 f_in[f_in_cord + (flow_dir == 0 ? 8 : flow_dir == 1 ? 2 : flow_dir == 2 ? 6 : 3)];
     density[density_cord] = 1.0f / (1.0f - (flow_dir < 2 ? u : v)) * (sum1 + 2 * sum2);
 
-    int start_i = (flow_dir == 0 ? 0 : flow_dir == 1 ? 3 : flow_dir == 2 ? 2 : 0);
-    int end_i = (flow_dir == 0 ? 3 : flow_dir == 1 ? 6 : flow_dir == 2 ? 5 : 2);
-    for (int i = start_i; i < end_i; i++) {
-        int opp_i = (flow_dir == 0 ? 8 - i : flow_dir == 1 ? 14 - i : flow_dir == 2 ? 10 - i : 8 - i);
+    int start_i = (flow_dir == 0 ? 0 : flow_dir == 1 ? 6 : flow_dir == 2 ? 2 : 2);
+    int end_i = (flow_dir == 0 ? 3 : flow_dir == 1 ? 9 : flow_dir == 2 ? 9 : 9);
+    int step = flow_dir < 2 ? 1 : 3;
+    for (int i = start_i; i < end_i; i += step) {
+        int opp_i = 8 - i;
         f_in[f_in_cord + i] = equilibrium(density[density_cord], weights[i], e[i*2+0], e[i*2+1], vel[vel_cord + 0], vel[vel_cord + 1]) +
                               f_in[f_in_cord + opp_i] -
                               equilibrium(density[density_cord], weights[opp_i], e[opp_i*2+0], e[opp_i*2+1], vel[vel_cord + 0], vel[vel_cord + 1]);
@@ -118,15 +119,15 @@ __global__ void cuda_outflow(float* f_in, int flow_dir){
     } else if (flow_dir == 1) {
         f_in_cord1 = id * gpu_width * 9;
         f_in_cord2 = id * gpu_width * 9 + 9;
-        f_in[f_in_cord1 + 3] = f_in[f_in_cord2 + 3];
-        f_in[f_in_cord1 + 4] = f_in[f_in_cord2 + 4];
-        f_in[f_in_cord1 + 5] = f_in[f_in_cord2 + 5];
+        f_in[f_in_cord1 + 0] = f_in[f_in_cord2 + 0];
+        f_in[f_in_cord1 + 1] = f_in[f_in_cord2 + 1];
+        f_in[f_in_cord1 + 2] = f_in[f_in_cord2 + 2];
     } else if (flow_dir == 2) {
         f_in_cord1 = (gpu_height - 1) * gpu_width * 9 + id * 9;
         f_in_cord2 = (gpu_height - 2) * gpu_width * 9 + id * 9;
         f_in[f_in_cord1 + 6] = f_in[f_in_cord2 + 6];
-        f_in[f_in_cord1 + 7] = f_in[f_in_cord2 + 7];
-        f_in[f_in_cord1 + 8] = f_in[f_in_cord2 + 8];
+        f_in[f_in_cord1 + 3] = f_in[f_in_cord2 + 3];
+        f_in[f_in_cord1 + 0] = f_in[f_in_cord2 + 0];
     } else { 
         f_in_cord1 = id * 9;
         f_in_cord2 = gpu_width * 9 + id * 9;
@@ -161,17 +162,10 @@ __global__ void cuda_streaming(float* f_in, float* f_out, float* e, int flow_dir
     for(int i = 0; i < 9; i++){
         int id1 = x + e[i*2 + 0];
         int id2 = y + e[i*2 + 1];
-
-        if (flow_dir == 0) {
-            if (id1 < 0 || id1 >= gpu_width || id2 == 0 || id2 == gpu_height - 1) continue;
-        } else if (flow_dir == 1) {
-            if (id1 < 0 || id1 >= gpu_width || id2 == 0 || id2 == gpu_height - 1) continue;
-        } else if (flow_dir == 2) {
-            if (id1 == 0 || id1 == gpu_width - 1 || id2 < 0 || id2 >= gpu_height) continue;
-        } else {
-            if (id1 == 0 || id1 == gpu_width - 1 || id2 < 0 || id2 >= gpu_height) continue;
-        }
-
+        if(id1 == gpu_width)id1 = 0;
+        if(id1 == -1)id1 = gpu_width - 1;
+        if(id2 == gpu_height)id2 = 0;
+        if(id2 == -1)id2 = gpu_height - 1;
         f_in[id2*gpu_width*9 + id1*9 + i] = f_out[f_out_cord + i];
     }
 }
@@ -182,7 +176,8 @@ __global__ void convert_visual(float *vel, unsigned char *visual_buffer, float m
     if (x >= gpu_width || y >= gpu_height) return;
     int vel_cord = y*gpu_width*2 + x*2;
     int vis_cord = y*gpu_width + x;
-    visual_buffer[vis_cord] = (sqrt(vel[vel_cord + 0]*vel[vel_cord + 0] + vel[vel_cord + 1]*vel[vel_cord + 1]) / max) * 255;
+    int val = (sqrt(vel[vel_cord + 0]*vel[vel_cord + 0] + vel[vel_cord + 1]*vel[vel_cord + 1]) / max) * 255;
+    visual_buffer[vis_cord] = val > 255 ? 255 : val;
 }
 
 __global__ void bounce_back(float* f_in, float* f_out, bool* obstacle_mask){
@@ -311,13 +306,13 @@ Field::~Field() {
 
 void Field::step() {
     cudaError_t err;
-    cuda_outflow<<<34,32>>>(f_in, static_cast<int>(flow_dir));
+    cuda_outflow<<<60,32>>>(f_in, static_cast<int>(flow_dir));
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_outflow kernel");
     cudaDeviceSynchronize();
     cuda_density_velocity<<<gridSize, blockSize>>>(f_in, vel, density, e);
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_density_velocity");
     cudaDeviceSynchronize();
-    cuda_inflow<<<34,32>>>(vel, f_in, density, weights, e, static_cast<int>(flow_dir));
+    cuda_inflow<<<60,32>>>(vel, f_in, density, weights, e, static_cast<int>(flow_dir));
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_inflow kernel");
     cudaDeviceSynchronize();
     cuda_collision<<<gridSize,blockSize>>>(f_in, f_out, density, vel, weights, e);
