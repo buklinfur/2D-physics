@@ -62,7 +62,7 @@ void GLVisual::draw(unsigned char* cuda_buffer) {
     cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_resource, 0, 0);
     
     // Копируем данные из CUDA буфера в текстуру
-    cudaMemcpyToArray(texture_ptr, 0, 0, cuda_buffer, width * height, cudaMemcpyDeviceToDevice); // Updated to width, height
+    cudaMemcpy2DToArray(texture_ptr, 0, 0, cuda_buffer, width, width, height, cudaMemcpyDeviceToDevice); // Updated to width, height
     
     // Отключаем ресурс
     cudaGraphicsUnmapResources(1, &cuda_tex_resource, 0);

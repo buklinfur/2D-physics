@@ -2,14 +2,13 @@ cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 project(CUDAModules LANGUAGES CXX CUDA)
 
-
 find_package(CUDA REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(GLEW REQUIRED)
 
 
-file(GLOB source_files "main.cu")
+# file(GLOB source_files "main.cu")
 
 
 add_library(CUDAGrid STATIC
@@ -48,8 +47,7 @@ target_compile_features(CUDAFacade PUBLIC cxx_std_17)
 set_target_properties(CUDAFacade PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 
-add_executable(executables  ${source_files})
-set_target_properties(executables PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(executables PRIVATE CUDAFacade CUDAGrid CUDADraw Obstacles)
-
-include_directories(include)
+# add_executable(executables  ${source_files})
+# set_target_properties(executables PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# target_link_libraries(executables PRIVATE CUDAFacade CUDAGrid CUDADraw Obstacles)
+# include_directories(include)

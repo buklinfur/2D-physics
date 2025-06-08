@@ -68,14 +68,14 @@ __global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weig
         vel_cord = id * gpu_width * 2 + (gpu_width - 1) * 2;
         f_in_cord = id * gpu_width * 9 + (gpu_width - 1) * 9;
         density_cord = id * gpu_width + (gpu_width - 1);
-        u = -2*gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_height - 1)));
+        u = -2 * gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_height - 1)));
         v = 0;
     } else if (flow_dir == 2) {
-        vel_cord = (gpu_height-1)*gpu_width*2 + id * 2;
-        f_in_cord = (gpu_height-1)*gpu_width*9 + id * 9;
+        vel_cord = (gpu_height-1) * gpu_width * 2 + id * 2;
+        f_in_cord = (gpu_height-1) * gpu_width * 9 + id * 9;
         density_cord = (gpu_height-1)*gpu_width + id;
         u = 0;
-        v = -gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_width - 1)));
+        v = -2 * gpu_uLB * (1 + 1e-1f * sin(id * 2 * 3.14f / (gpu_width - 1)));
     } else {
         vel_cord = (gpu_height - 1) * gpu_width * 2 + id * 2;
         f_in_cord = (gpu_height - 1) * gpu_width * 9 + id * 9;

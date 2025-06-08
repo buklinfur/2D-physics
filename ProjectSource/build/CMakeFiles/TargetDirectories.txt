@@ -1,0 +1,9 @@
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CMakeFiles/executables.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CMakeFiles/edit_cache.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CMakeFiles/rebuild_cache.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CUDAModules/CMakeFiles/CUDAGrid.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CUDAModules/CMakeFiles/CUDADraw.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CUDAModules/CMakeFiles/Obstacles.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CUDAModules/CMakeFiles/CUDAFacade.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CUDAModules/CMakeFiles/edit_cache.dir
+/home/buklinfur/projects/4semester_sdppm/2D-physics/ProjectSource/build/CUDAModules/CMakeFiles/rebuild_cache.dir
