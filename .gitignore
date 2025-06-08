@@ -1,5 +1,8 @@
        # IDE files
-             /.idea
+            .idea/
+            .vscode/
 
        # Production
-             /build
+            build/
+            ProjectSource/build/
+            cuda-version/
