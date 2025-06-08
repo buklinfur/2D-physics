@@ -245,7 +245,7 @@ Field::Field(size_t width, size_t height, int block_size, float uLB, float Re,
         for (int j = 0; j < height; j++) { 
             temp_vel[i*2 + j*width*2 + 0] = (1-2) * uLB * (1 + 1e-4*sin(i/(width-1)*0.5))/10; 
             temp_vel[i*2 + j*width*2 + 1] = (1-2) * uLB * (1 + 1e-4*sin(j/(height-1)*0.5))/10;
-            if (j == height - 1 || j == 0) { // Fixed: width to height
+            if (j == height - 1 || j == 0) {
                 temp_vel[i*2 + j*width*2 + 0] = 0;
                 temp_vel[i*2 + j*width*2 + 1] = 0;
             }
@@ -307,7 +307,6 @@ Field::~Field() {
     if (e) cudaFree(e);
     if (weights) cudaFree(weights);
     if (visual_buffer) cudaFree(visual_buffer);
-    // Do not free obstacle_mask, owned by ObstaclesFactory
 }
 
 void Field::step() {
@@ -341,5 +340,5 @@ unsigned char* Field::get_visual(float max) {
 }
 
 void Field::update_obstacle_mask(bool* obstacle_mask) {
-    this->obstacle_mask = obstacle_mask; // Direct assignment
+    this->obstacle_mask = obstacle_mask;
 }

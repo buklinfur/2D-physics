@@ -8,12 +8,12 @@ private:
     GLuint textureID;
     cudaGraphicsResource* cuda_tex_resource = nullptr;
     GLFWwindow* window = nullptr;
-    int width, height; // Renamed from WIDTH, HEIGHT
+    int width, height;
 
 public:
-    GLVisual(const char* name, int width, int height, int vsync = 1); // Changed char name[] to const char*
+    GLVisual(const char* name, int width, int height, int vsync = 1);
     ~GLVisual();
 
-    void draw(unsigned char* cuda_buffer); // Changed void* to unsigned char*
+    void draw(unsigned char* cuda_buffer);
     bool alive();
 };

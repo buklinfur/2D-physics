@@ -7,7 +7,7 @@
 class CUDAFacade {
 public:
     CUDAFacade(size_t width, size_t height, int block_size, float uLB, float Re,
-              FlowDirection flow_dir, const char* window_name, int vsync = 1);
+              FlowDirection flow_dir, const char* window_name, int vsync = 1, float lim = 0.1f);
 
     void add_circle(float center_x, float center_y, float radius);
     void add_rectangle(float center_x, float center_y, float width, float height);
@@ -24,4 +24,5 @@ private:
     GLVisual* visuals_; 
     Field* computing_;
     ObstaclesFactory* obstacles_factory_;
+    float lim_;
 };

@@ -2,13 +2,14 @@
 #include <stdexcept>
 
 CUDAFacade::CUDAFacade(size_t width, size_t height, int block_size, float uLB, float Re,
-                       FlowDirection flow_dir, const char* window_name, int vsync)
+                       FlowDirection flow_dir, const char* window_name, int vsync, float lim)
     : width_(width), height_(height) {
 
     obstacles_factory_ = new ObstaclesFactory(width, height);
     computing_ = new Field(width, height, block_size, uLB, Re, flow_dir,
                            obstacles_factory_->get_obstacle_mask());
     visuals_ = new GLVisual(window_name, width, height, vsync);
+    lim_ = lim;
 }
 
 CUDAFacade::~CUDAFacade() {
@@ -40,7 +41,7 @@ void CUDAFacade::clear_obstacles() {
 void CUDAFacade::run() {
     while (visuals_->alive()) {
         computing_->step();
-        unsigned char* visual_data = computing_->get_visual(0.04f); 
+        unsigned char* visual_data = computing_->get_visual(lim_); 
         if (visual_data) visuals_->draw(visual_data);
     }
 }

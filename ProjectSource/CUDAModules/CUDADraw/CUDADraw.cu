@@ -4,14 +4,12 @@
 GLVisual::GLVisual(const char* name, int width, int height, int vsync) 
     : width(width), height(height), window(nullptr), cuda_tex_resource(nullptr) {
     
-    // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
         return;
     }
 
-    // Create window and OpenGL context
-    window = glfwCreateWindow(width, height, name, NULL, NULL); // Updated to width, height
+    window = glfwCreateWindow(width, height, name, NULL, NULL); 
     if (!window) {
         glfwTerminate();
         std::cerr << "Failed to create GLFW window\n";
@@ -21,7 +19,6 @@ GLVisual::GLVisual(const char* name, int width, int height, int vsync)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(vsync);
     
-    // Initialize GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW\n";
@@ -29,14 +26,12 @@ GLVisual::GLVisual(const char* name, int width, int height, int vsync)
         return;
     }
 
-    // Create texture
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL); // Updated to width, height
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 
-    // Register with CUDA
     cudaError_t err = cudaGraphicsGLRegisterImage(&cuda_tex_resource, textureID, 
                                                 GL_TEXTURE_2D, cudaGraphicsRegisterFlagsWriteDiscard);
     if (err != cudaSuccess) {
