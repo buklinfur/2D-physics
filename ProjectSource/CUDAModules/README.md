@@ -1,4 +1,4 @@
-# 2D-physics
+# CUDA modules
 
 ## installments:
     sudo apt install nvidia-cuda-toolkit
