@@ -5,7 +5,7 @@ project(LBMSim LANGUAGES CXX CUDA)
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE "GLVND")
 
-# cmake_policy(SET CMP0146 NEW)
+cmake_policy(SET CMP0146 NEW)
 cmake_policy(SET CMP0104 NEW)
 
 
