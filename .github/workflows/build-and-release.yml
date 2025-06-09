@@ -19,15 +19,17 @@ jobs:
         run: sudo apt update && sudo apt install -y nlohmann-json3-dev libcurl4-openssl-dev
 
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }} -- -j
+        run: |
+          cd ProjectSource
+          cmake --build build --config Release
 
       - name: Package
         run: |
           cd build
-          tar czf lbm-${{ runner.os }}-${{ matrix.build_type }}-${GITHUB_REF_NAME}.tar.gz AppFacadeExec
+          tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz AppFacadeExec
          
       - name: Create Release
         uses: softprops/action-gh-release@v1
