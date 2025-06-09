@@ -14,9 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup CMake
-        uses: lukka/get-cmake@v3
-
       - name: Install Dependencies
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt update && sudo apt install -y nlohmann-json3-dev libcurl4-openssl-dev
