@@ -37,7 +37,7 @@ endif()
 
 add_subdirectory(CUDAModules)
 # add_subdirectory(App)
-# add_subdirectory(UpdateLoader)
+add_subdirectory(UpdateLoader)
 
 file(GLOB source_files "main.cu")
 
