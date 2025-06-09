@@ -23,11 +23,13 @@ jobs:
           cmake -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build --config Release
+        run: |
+          cd ProjectSource
+          cmake --build build --config Release
 
       - name: Package
         run: |
-          cd build
+          cd ProjectSource/build
           tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz AppFacadeExec
          
       - name: Create Release
