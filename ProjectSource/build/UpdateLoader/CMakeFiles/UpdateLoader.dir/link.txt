@@ -1,0 +1,2 @@
+/usr/bin/ar qc libUpdateLoader.a CMakeFiles/UpdateLoader.dir/UpdateLoader.cpp.o
+/usr/bin/ranlib libUpdateLoader.a

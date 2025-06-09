@@ -7,11 +7,10 @@ public:
     static bool DownloadUpdate();
     static void ApplyUpdate();
     static std::string GetCurrentVersion();
+    static std::string GetLatestVersion();
     
 private:
     static std::string current_version;
     static std::string latest_version;
-    
-    static std::string GetLatestVersion();
     static bool VerifyChecksum(const std::string& path);
 };

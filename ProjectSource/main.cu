@@ -6,28 +6,52 @@
 
 using namespace std;
 
-int main() {
-    std::cout << "LBM Simulation Version: " << UpdateManager::GetCurrentVersion() 
-              << " (PID: " << getpid() << ")" << std::endl;
+int main(int argc, char** argv) {
+    bool skipUpdate = (argc > 1 && std::string(argv[1]) == "--no-update");
 
-    // Update check with cooldown
-    static std::chrono::steady_clock::time_point lastCheck;
-    auto now = std::chrono::steady_clock::now();
-    
-    if (lastCheck.time_since_epoch().count() == 0 || 
-        now - lastCheck > std::chrono::hours(24)) {
-        
-        lastCheck = now;
-        if (UpdateManager::CheckForUpdate()) {
-            std::cout << "Update available. Downloading..." << std::endl;
-            if (UpdateManager::DownloadUpdate()) {
-                std::cout << "Update ready. Restarting..." << std::endl;
-                UpdateManager::ApplyUpdate();
-                // Should never reach here
-                return 1;
+    std::cout << "LBM Simulation (PID: " << getpid() << ")" << std::endl;
+
+
+    if (!skipUpdate) {
+        static std::chrono::steady_clock::time_point lastCheck;
+        auto now = std::chrono::steady_clock::now();
+
+        if (lastCheck.time_since_epoch().count() == 0 ||
+            now - lastCheck > std::chrono::hours(24)) {
+
+            lastCheck = now;
+
+            if (UpdateManager::CheckForUpdate()) {
+                std::cout << "\n\033[1;32m🚀 A new version is available!\033[0m\n";
+                std::cout << "Current version: " << UpdateManager::GetCurrentVersion() << "\n";
+                std::cout << "Latest version : " << UpdateManager::GetLatestVersion() << "\n";
+                std::cout << "\nWould you like to update now? [Y/n]: ";
+
+                std::string choice;
+                while (true) {
+                    std::getline(std::cin, choice);
+                    if (choice.empty() || choice == "y" || choice == "Y") {
+                        std::cout << "\nDownloading update...\n";
+                        if (UpdateManager::DownloadUpdate()) {
+                            std::cout << "✅ Update ready. Restarting...\n";
+                            UpdateManager::ApplyUpdate();
+                            return 1;
+                        } else {
+                            std::cerr << "❌ Update failed.\n";
+                            break;
+                        }
+                    } else if (choice == "n" || choice == "N") {
+                        std::cout << "ℹ️  Skipping update. Continuing with current version.\n\n";
+                        break;
+                    } else {
+                        std::cout << "Please enter 'Y' (yes) or 'N' (no): ";
+                    }
+                }
             }
         }
     }
+
+
     try {
         CUDAFacade sim(1240, 1080, 16, 0.04f, 10.0f, FlowDirection::LEFT_TO_RIGHT, "ok computer");
 

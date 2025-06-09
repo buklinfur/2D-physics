@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
+#include <unistd.h>
 
 std::string UpdateManager::current_version = "";
 std::string UpdateManager::latest_version = "";
@@ -15,13 +17,23 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
 
 std::string UpdateManager::GetCurrentVersion() {
     if (!current_version.empty()) return current_version;
-    
-    std::ifstream verFile("version.info");
-    if (verFile.good()) {
-        std::getline(verFile, current_version);
-    } else {
+
+    char exePath[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", exePath, sizeof(exePath) - 1);
+    if (len != -1) {
+        exePath[len] = '\0';
+        std::filesystem::path versionPath = std::filesystem::path(exePath).parent_path() / "version.info";
+        
+        std::ifstream verFile(versionPath);
+        if (verFile.good()) {
+            std::getline(verFile, current_version);
+        }
+    }
+
+    if (current_version.empty()) {
         current_version = "0.0.0";
     }
+
     return current_version;
 }
 
@@ -32,13 +44,12 @@ bool UpdateManager::CheckForUpdate() {
     std::cout << "Current version: " << current_version << std::endl;
     std::cout << "Latest version: " << latest_version << std::endl;
     
-    // Compare semantic versions
     return (current_version != latest_version) && !latest_version.empty();
 }
 
 bool UpdateManager::DownloadUpdate() {
-    std::string url = "https://github.com/yourusername/yourrepo/releases/download/" + 
-                      latest_version + "/lbm-linux-Release-" + latest_version + ".tar.gz";
+    std::string url = "https://github.com/buklinfur/2D-physics/releases/download/" + 
+                      latest_version + "/lbm-linux-latest.tar.gz";
     
     std::string tmpPath = "/tmp/lbm_update.tar.gz";
     
@@ -63,9 +74,8 @@ bool UpdateManager::DownloadUpdate() {
     return VerifyChecksum(tmpPath);
 }
 
-// Add this new function
+// future addition
 bool UpdateManager::VerifyChecksum(const std::string& path) {
-    // In practice, you should compare with a checksum from GitHub API
     std::cout << "Skipping checksum verification for debugging" << std::endl;
     return true; // Temporarily skip for debugging
     

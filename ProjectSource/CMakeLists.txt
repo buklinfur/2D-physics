@@ -5,7 +5,7 @@ project(LBMSim LANGUAGES CXX CUDA)
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE "GLVND")
 
-cmake_policy(SET CMP0146 NEW)
+# cmake_policy(SET CMP0146 NEW)
 cmake_policy(SET CMP0104 NEW)
 
 
@@ -34,10 +34,17 @@ else()
   endif()
 endif()
 
+execute_process(
+  COMMAND git describe --tags --abbrev=0
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_TAG
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 file(WRITE ${CMAKE_BINARY_DIR}/version.info "${GIT_TAG}")
 
 add_subdirectory(CUDAModules)
-# add_subdirectory(App)
+# add_subdirectory(App) # to be added in the future
 add_subdirectory(UpdateLoader)
 
 file(GLOB source_files "main.cu")
