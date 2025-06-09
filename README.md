@@ -4,8 +4,7 @@ Current state: technical preview
 
 A lightweight 2D Lattice‐Boltzmann Method (LBM) fluid simulator, accelerated on NVIDIA GPUs via CUDA, with:
 
-- **App Facade**: thin controller (`main.cu`) that wires together config parsing, update checking, and CUDA engine  
-- **Config Parser**: JSON-based simulation parameters (grid size, flow, display, obstacles) via nlohmann/json  
+- **App Facade**: thin controller (`main.cu`) that wires together update checking, and CUDA engine  
 - **CUDA Facade**: handles obstacle setup, kernel launches, and OpenGL visualization  
 - **Self-Update Loader**: checks GitHub Releases, downloads & verifies SHA256 checksums, and self-replaces the binary  
 
