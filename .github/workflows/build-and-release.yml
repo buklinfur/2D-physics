@@ -30,7 +30,7 @@ jobs:
       - name: Package
         run: |
           cd ProjectSource/build
-          tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz AppFacadeExec
+          tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz executables
          
       - name: Create Release
         uses: softprops/action-gh-release@v1
