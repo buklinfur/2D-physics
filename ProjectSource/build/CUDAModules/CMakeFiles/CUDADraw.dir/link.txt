@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCUDADraw.a CMakeFiles/CUDADraw.dir/CUDADraw/CUDADraw.cu.o
+/usr/bin/ranlib libCUDADraw.a

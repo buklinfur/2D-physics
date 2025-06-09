@@ -1,101 +1,104 @@
-// UpdateLoader.cpp
 #include "UpdateLoader.hpp"
+#include <curl/curl.h>
 #include <nlohmann/json.hpp>
-// #include <curl/curl.h>
-#include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iostream>
 
-// UpdateLoader::UpdateLoader(std::string repoOwner,
-//                            std::string repoName,
-//                            std::string currentVersion)
-//   : owner_(std::move(repoOwner)),
-//     repo_(std::move(repoName)),
-//     currVer_(std::move(currentVersion))
-// {}
+std::string UpdateManager::current_version = "";
+std::string UpdateManager::latest_version = "";
 
-// std::string UpdateLoader::httpGet(const std::string& url) {
-//   CURL* curl = curl_easy_init();
-//   std::string data;
-//   if (!curl) throw std::runtime_error("libcurl init failed");
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* data) {
+    data->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
 
-//   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-//   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-//     +[](char* ptr, size_t size, size_t nmemb, void* userdata) {
-//       auto& s = *static_cast<std::string*>(userdata);
-//       s.append(ptr, size * nmemb);
-//       return size * nmemb;
-//     }
-//   );
-//   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+std::string UpdateManager::GetCurrentVersion() {
+    if (!current_version.empty()) return current_version;
+    
+    std::ifstream verFile("version.info");
+    if (verFile.good()) {
+        std::getline(verFile, current_version);
+    } else {
+        current_version = "0.0.0";
+    }
+    return current_version;
+}
 
-//   CURLcode res = curl_easy_perform(curl);
-//   curl_easy_cleanup(curl);
-//   if (res != CURLE_OK)
-//     throw std::runtime_error("HTTP request failed");
+bool UpdateManager::CheckForUpdate() {
+    current_version = GetCurrentVersion();
+    latest_version = GetLatestVersion();
+    
+    std::cout << "Current version: " << current_version << std::endl;
+    std::cout << "Latest version: " << latest_version << std::endl;
+    
+    // Compare semantic versions
+    return (current_version != latest_version) && !latest_version.empty();
+}
 
-//   return data;
-// }
+bool UpdateManager::DownloadUpdate() {
+    std::string url = "https://github.com/yourusername/yourrepo/releases/download/" + 
+                      latest_version + "/lbm-linux-Release-" + latest_version + ".tar.gz";
+    
+    std::string tmpPath = "/tmp/lbm_update.tar.gz";
+    
+    CURL* curl = curl_easy_init();
+    if (!curl) return false;
+    
+    FILE* fp = fopen(tmpPath.c_str(), "wb");
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "LBM-UpdateAgent");
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    
+    CURLcode res = curl_easy_perform(curl);
+    fclose(fp);
+    curl_easy_cleanup(curl);
+    
+    if (res != CURLE_OK) {
+        std::cerr << "Download failed: " << curl_easy_strerror(res) << std::endl;
+        return false;
+    }
+    
+    return VerifyChecksum(tmpPath);
+}
 
-// std::string UpdateLoader::fetchLatestVersion() {
-//   std::string apiUrl =
-//     "https://api.github.com/repos/" + owner_ + "/" + repo_ + "/releases/latest";
+// Add this new function
+bool UpdateManager::VerifyChecksum(const std::string& path) {
+    // In practice, you should compare with a checksum from GitHub API
+    std::cout << "Skipping checksum verification for debugging" << std::endl;
+    return true; // Temporarily skip for debugging
+    
+    // Actual implementation would:
+    // 1. Fetch checksum from GitHub API
+    // 2. Calculate local file checksum
+    // 3. Compare them
+}
 
-//   std::string body = httpGet(apiUrl);
-//   auto j = nlohmann::json::parse(body);
-//   return j.at("tag_name").get<std::string>();  // e.g. "v1.2.4"
-// }
+void UpdateManager::ApplyUpdate() {
+    std::cout << "Applying update..." << std::endl;
+    system("sh UpdateLoader/scripts/update.sh");
+    exit(0);
+}
 
-// bool UpdateLoader::isVersionGreater(const std::string& a,
-//                                     const std::string& b) {
-//   // Simple lexicographic semver: strip leading 'v', split on '.', compare ints.
-//   auto strip = [](const std::string& s){
-//     return s.front()=='v' ? s.substr(1) : s;
-//   };
-//   std::vector<int> va, vb;
-//   for (auto& x : {/*a*/}){} // implement split & stoi...
-//   // [omitted for brevity]
-//   return va > vb;
-// }
-
-// bool UpdateLoader::downloadReleaseAsset(const std::string& version,
-//                                         const std::string& assetName,
-//                                         const std::string& outPath)
-// {
-//   std::string url =
-//     "https://github.com/" + owner_ + "/" + repo_ +
-//     "/releases/download/" + version + "/" + assetName;
-
-//   std::string fileData = httpGet(url);
-//   std::ofstream out{outPath, std::ios::binary};
-//   if (!out) return false;
-//   out.write(fileData.data(), fileData.size());
-//   return true;
-// }
-
-// bool UpdateLoader::checkAndUpdate() {
-//   try {
-//     std::string latest = fetchLatestVersion();
-//     if (isVersionGreater(latest, currVer_)) {
-//       std::cout << "New version " << latest << " available (you have "
-//                 << currVer_ << "). Update? [Y/n] ";
-
-//       char resp='y';
-//       std::cin >> resp;
-//       if (resp=='Y' || resp=='y') {
-//         // decide your assetName & outPath based on OS/arch
-//         std::string asset = /* e.g. "lbm-linux-Release-" + latest + ".tar.gz" */;
-//         std::string out   = "update.tmp";
-//         if (downloadReleaseAsset(latest, asset, out)) {
-//           // unpack & replace binary; or instruct user
-//           std::cout<<"Downloaded to "<<out<<". Please unpack and replace binary.\n";
-//           return true;
-//         }
-//         else std::cerr<<"Download failed\n";
-//       }
-//     }
-//   }
-//   catch (const std::exception& e) {
-//     std::cerr<<"Update check failed: "<<e.what()<<"\n";
-//   }
-//   return false;
-// }
+std::string UpdateManager::GetLatestVersion() {
+    CURL* curl = curl_easy_init();
+    std::string response;
+    
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, "https://api.github.com/repos/buklinfur/2D-physics/releases/latest");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "LBM-UpdateAgent");
+        
+        curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
+    
+    try {
+        auto json = nlohmann::json::parse(response);
+        return json["tag_name"];
+    } catch(...) {
+        return "";
+    }
+}

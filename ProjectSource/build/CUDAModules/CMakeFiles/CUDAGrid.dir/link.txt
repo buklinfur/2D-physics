@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCUDAGrid.a CMakeFiles/CUDAGrid.dir/CUDAGrid/CUDAGrid.cu.o
+/usr/bin/ranlib libCUDAGrid.a

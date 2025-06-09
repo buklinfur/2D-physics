@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+project(UpdateLoader LANGUAGES CXX)
 
-project(CUDAModules LANGUAGES CXX CUDA)
+add_library(UpdateLoader STATIC
+    UpdateLoader.cpp
+    UpdateLoader.hpp
+)
 
 find_package(CURL REQUIRED)
-find_package(nlohmann_json REQUIRED)
+target_include_directories(UpdateLoader PUBLIC 
+    include 
+    ${CURL_INCLUDE_DIRS}
+)
+target_link_libraries(UpdateLoader PRIVATE ${CURL_LIBRARIES})
 
-add_library(UpdateLoaderLib
-    UpdateLoader.cpp
-    UpdateLoader.h
-)
-target_link_libraries(UpdateLoaderLib
-    PUBLIC CURL::libcurl nlohmann_json::nlohmann_json
-)
+file(COPY scripts DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

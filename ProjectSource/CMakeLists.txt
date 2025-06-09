@@ -5,7 +5,7 @@ project(LBMSim LANGUAGES CXX CUDA)
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE "GLVND")
 
-cmake_policy(SET CMP0146 NEW)
+# cmake_policy(SET CMP0146 NEW)
 cmake_policy(SET CMP0104 NEW)
 
 
@@ -34,14 +34,20 @@ else()
   endif()
 endif()
 
+file(WRITE ${CMAKE_BINARY_DIR}/version.info "${GIT_TAG}")
 
 add_subdirectory(CUDAModules)
 # add_subdirectory(App)
-# add_subdirectory(UpdateLoader)
+add_subdirectory(UpdateLoader)
 
 file(GLOB source_files "main.cu")
 
 add_executable(executables  ${source_files})
 set_target_properties(executables PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(executables PRIVATE CUDAFacade CUDAGrid CUDADraw Obstacles)
+target_link_libraries(executables PRIVATE 
+                                CUDAFacade 
+                                CUDAGrid 
+                                CUDADraw 
+                                Obstacles
+                                UpdateLoader)
 include_directories(include)

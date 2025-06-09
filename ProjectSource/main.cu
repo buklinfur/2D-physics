@@ -1,9 +1,33 @@
 #include "CUDAModules/CUDAFacade/CUDAFacade.cuh"
+#include "UpdateLoader/UpdateLoader.hpp"
 #include <iostream>
+#include <chrono>
+#include <unistd.h>
 
 using namespace std;
 
 int main() {
+    std::cout << "LBM Simulation Version: " << UpdateManager::GetCurrentVersion() 
+              << " (PID: " << getpid() << ")" << std::endl;
+
+    // Update check with cooldown
+    static std::chrono::steady_clock::time_point lastCheck;
+    auto now = std::chrono::steady_clock::now();
+    
+    if (lastCheck.time_since_epoch().count() == 0 || 
+        now - lastCheck > std::chrono::hours(24)) {
+        
+        lastCheck = now;
+        if (UpdateManager::CheckForUpdate()) {
+            std::cout << "Update available. Downloading..." << std::endl;
+            if (UpdateManager::DownloadUpdate()) {
+                std::cout << "Update ready. Restarting..." << std::endl;
+                UpdateManager::ApplyUpdate();
+                // Should never reach here
+                return 1;
+            }
+        }
+    }
     try {
         CUDAFacade sim(1240, 1080, 16, 0.04f, 10.0f, FlowDirection::LEFT_TO_RIGHT, "ok computer");
 

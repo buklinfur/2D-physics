@@ -1,27 +1,17 @@
 #pragma once
-
 #include <string>
 
-class UpdateLoader {
+class UpdateManager {
 public:
-  UpdateLoader(std::string repoOwner,
-               std::string repoName,
-               std::string currentVersion);
-
-  std::string fetchLatestVersion();
-
-  bool downloadReleaseAsset(const std::string& version,
-                            const std::string& assetName,
-                            const std::string& outPath);
-
-  bool checkAndUpdate();
-
+    static bool CheckForUpdate();
+    static bool DownloadUpdate();
+    static void ApplyUpdate();
+    static std::string GetCurrentVersion();
+    
 private:
-  std::string owner_;
-  std::string repo_;
-  std::string currVer_;
-
-  bool isVersionGreater(const std::string& a, const std::string& b);
-
-  std::string httpGet(const std::string& url);
+    static std::string current_version;
+    static std::string latest_version;
+    
+    static std::string GetLatestVersion();
+    static bool VerifyChecksum(const std::string& path);
 };
