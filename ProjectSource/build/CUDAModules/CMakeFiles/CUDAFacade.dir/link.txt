@@ -1,2 +1,0 @@
-/usr/bin/ar qc libCUDAFacade.a CMakeFiles/CUDAFacade.dir/CUDAFacade/CUDAFacade.cu.o
-/usr/bin/ranlib libCUDAFacade.a
