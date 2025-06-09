@@ -4,7 +4,9 @@ on:
   push:
     branches: ["master", "release"]
     tags: ['v*.*.*-release', 'v*.*.*-master']
-    
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -42,6 +44,6 @@ jobs:
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
-          files: build/*.tar.gz, build/*.zip
+          files: ProjectSource/build/*.tar.gz, build/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
