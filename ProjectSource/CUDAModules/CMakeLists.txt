@@ -7,10 +7,6 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(GLEW REQUIRED)
 
-
-# file(GLOB source_files "main.cu")
-
-
 add_library(CUDAGrid STATIC
     CUDAGrid/CUDAGrid.cu
     CUDAGrid/CUDAGrid.cuh
@@ -45,9 +41,3 @@ add_library(CUDAFacade STATIC
 
 target_compile_features(CUDAFacade PUBLIC cxx_std_17)
 set_target_properties(CUDAFacade PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
-
-# add_executable(executables  ${source_files})
-# set_target_properties(executables PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-# target_link_libraries(executables PRIVATE CUDAFacade CUDAGrid CUDADraw Obstacles)
-# include_directories(include)

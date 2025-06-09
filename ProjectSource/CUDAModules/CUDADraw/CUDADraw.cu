@@ -1,17 +1,6 @@
 #include "CUDADraw.cuh"
 #include <iostream>
-/** 
- * @class GLVisual
- * @brief Manages an OpenGL window and CUDA‐registered texture for drawing.
- */
 
-/**
- * @brief Initializes GLFW, creates a window, sets up a CUDA‐registered texture.
- * @param name   Window title.
- * @param width  Width of the window and texture.
- * @param height Height of the window and texture.
- * @param vsync  VSync flag (0 = off, >0 = on).
- */
 GLVisual::GLVisual(const char* name, int width, int height, int vsync)
     : width(width), height(height), window(nullptr), cuda_tex_resource(nullptr) 
 {
@@ -55,9 +44,6 @@ GLVisual::GLVisual(const char* name, int width, int height, int vsync)
     }
 }
 
-/**
- * @brief Cleans up CUDA resources and destroys the GLFW window.
- */
 GLVisual::~GLVisual() {
     if (cuda_tex_resource) {
         cudaGraphicsUnregisterResource(cuda_tex_resource);
@@ -68,10 +54,6 @@ GLVisual::~GLVisual() {
     }
 }
 
-/**
- * @brief Renders the given CUDA buffer to the window texture and displays it.
- * @param cuda_buffer Device pointer containing pixel data (one byte per texel).
- */
 void GLVisual::draw(unsigned char* cuda_buffer) {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -105,10 +87,7 @@ void GLVisual::draw(unsigned char* cuda_buffer) {
     glfwPollEvents();
 }
 
-/**
- * @brief Checks whether the window is still open.
- * @return True if the window has not been signaled to close.
- */
+
 bool GLVisual::alive() {
     return !glfwWindowShouldClose(window);
 }

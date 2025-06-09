@@ -33,17 +33,6 @@ __device__ float gpu_omega;
         exit(1); \
     }
 
-/**
- * @brief Compute equilibrium distribution function for a D2Q9 model.
- *
- * @param density Fluid density at a node.
- * @param weight Lattice weight for the direction.
- * @param e1 x-component of discrete velocity direction.
- * @param e2 y-component of discrete velocity direction.
- * @param vel1 x-component of macroscopic velocity.
- * @param vel2 y-component of macroscopic velocity.
- * @return Equilibrium distribution function value for the given direction.
- */
 __device__ float equilibrium(float density,float weight,float e1, float e2,float vel1, float vel2){
     float usqr = 3.0/2 * (vel1*vel1 + vel2*vel2);
     float cu = 3 * (e1*vel1 + e2*vel2);
@@ -51,14 +40,6 @@ __device__ float equilibrium(float density,float weight,float e1, float e2,float
     return f_eq;
 }
 
-/**
- * @brief Compute fluid density and velocity at each node.
- *
- * @param f_in Input distribution functions.
- * @param vel Output buffer for velocities (2 components per node).
- * @param density Output buffer for scalar densities.
- * @param e Discrete velocity vectors (D2Q9 model, 18 elements).
- */
 __global__ void cuda_density_velocity(float* f_in, float* vel, float* density, float* e) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -85,16 +66,6 @@ __global__ void cuda_density_velocity(float* f_in, float* vel, float* density, f
     }
 }
 
-/**
- * @brief Apply inflow boundary condition using specified direction.
- *
- * @param vel Velocity field (to update).
- * @param f_in Input distribution functions (to modify).
- * @param density Local density buffer.
- * @param weights Lattice weights.
- * @param e Discrete velocity directions.
- * @param flow_dir Direction of flow (0:left, 1:right, 2:bottom, 3:top).
- */
 __global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weights, float* e, int flow_dir){
     int id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= (flow_dir < 2 ? gpu_height : gpu_width)) return;
@@ -148,12 +119,6 @@ __global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weig
     }
 }
 
-/**
- * @brief Apply zero-gradient outflow boundary condition.
- *
- * @param f_in Distribution functions (to modify at boundary).
- * @param flow_dir Direction of flow (0:left, 1:right, 2:bottom, 3:top).
- */
 __global__ void cuda_outflow(float* f_in, int flow_dir){
     int id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= (flow_dir < 2 ? gpu_height : gpu_width)) return;
@@ -186,16 +151,6 @@ __global__ void cuda_outflow(float* f_in, int flow_dir){
     }
 }
 
-/**
- * @brief Perform BGK collision step to relax f_in toward equilibrium.
- *
- * @param f_in Input distribution functions.
- * @param f_out Output distribution functions after collision.
- * @param density Local density.
- * @param vel Local velocity.
- * @param weights Lattice weights.
- * @param e Discrete velocity directions.
- */
 __global__ void cuda_collision(float *f_in, float *f_out, float *density, float* vel, float *weights, float *e){
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -212,15 +167,7 @@ __global__ void cuda_collision(float *f_in, float *f_out, float *density, float*
     }
 }
 
-/**
- * @brief Propagate distribution functions along discrete velocity directions.
- *
- * @param f_in Updated input distribution functions.
- * @param f_out Post-collision distribution functions.
- * @param e Discrete velocity vectors.
- * @param flow_dir Flow direction used to wrap around (periodic).
- */
-__global__ void cuda_streaming(float* f_in, float* f_out, float* e, int flow_dir){
+__global__ void cuda_streaming(float* f_in, float* f_out, float* e){
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     if (x >= gpu_width || y >= gpu_height) return;
@@ -237,13 +184,6 @@ __global__ void cuda_streaming(float* f_in, float* f_out, float* e, int flow_dir
     }
 }
 
-/**
- * @brief Convert velocity magnitude to grayscale for visualization.
- *
- * @param vel Velocity buffer.
- * @param visual_buffer Output buffer (unsigned char) for grayscale visualization.
- * @param max Maximum velocity magnitude used for normalization.
- */
 __global__ void convert_visual(float *vel, unsigned char *visual_buffer, float max){
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -254,13 +194,6 @@ __global__ void convert_visual(float *vel, unsigned char *visual_buffer, float m
     visual_buffer[vis_cord] = val > 255 ? 255 : val;
 }
 
-/**
- * @brief Apply bounce-back boundary condition for solid obstacles.
- *
- * @param f_in Input distribution functions.
- * @param f_out Output buffer after reflection.
- * @param obstacle_mask Boolean mask indicating solid nodes.
- */
 __global__ void bounce_back(float* f_in, float* f_out, bool* obstacle_mask){
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -274,17 +207,6 @@ __global__ void bounce_back(float* f_in, float* f_out, bool* obstacle_mask){
         f_out[f_cord + i] = f_in[f_cord + 8 - i];
 }
 
-/**
- * @brief Initialize device-side simulation constants.
- *
- * @param width Simulation width.
- * @param height Simulation height.
- * @param r Characteristic radius.
- * @param uLB Lattice velocity.
- * @param Re Reynolds number.
- * @param nulb Kinematic viscosity.
- * @param omega Relaxation parameter.
- */
 __global__ void set_device_constants(size_t width, size_t height, float r,
                                  float uLB, float Re, float nulb, float omega){
     gpu_width = width;
@@ -296,19 +218,6 @@ __global__ void set_device_constants(size_t width, size_t height, float r,
     gpu_omega = omega;
 }
 
-/**
- * @brief Construct a Field object managing LBM buffers and parameters.
- *
- * Allocates GPU memory and calculates physical parameters for the LBM simulation.
- *
- * @param width Width of the simulation grid.
- * @param height Height of the simulation grid.
- * @param block_size Size of CUDA blocks (e.g., 16 for 16x16 threads).
- * @param uLB Characteristic lattice velocity.
- * @param Re Reynolds number.
- * @param flow_dir Direction of inflow (left, right, top, bottom).
- * @param obstacle_mask Host-side boolean mask for solid cells (used for bounce-back).
- */
 Field::Field(size_t width, size_t height, int block_size, float uLB, float Re, 
              FlowDirection flow_dir, bool* obstacle_mask) 
     : width(width), height(height), flow_dir(flow_dir), obstacle_mask(obstacle_mask) {
@@ -400,12 +309,6 @@ Field::Field(size_t width, size_t height, int block_size, float uLB, float Re,
     delete [] temp_density;
 }
 
-/**
- * @brief Destructor for the Field object.
- *
- * Frees all allocated GPU memory associated with distribution functions, velocities,
- * densities, weights, and visualization buffers.
- */
 Field::~Field() {
     if (f_in) cudaFree(f_in);
     if (f_out) cudaFree(f_out);
@@ -416,16 +319,6 @@ Field::~Field() {
     if (visual_buffer) cudaFree(visual_buffer);
 }
 
-/**
- * @brief Perform one LBM step: collision followed by streaming.
- *
- * This method invokes device kernels to:
- * - Compute macroscopic density and velocity
- * - Apply inflow and outflow boundary conditions
- * - Perform BGK collision step
- * - Stream distribution functions to neighbor nodes
- * - Apply bounce-back conditions for solid obstacles
- */
 void Field::step() {
     cudaError_t err;
     cuda_outflow<<<60,32>>>(f_in, static_cast<int>(flow_dir));
@@ -448,12 +341,6 @@ void Field::step() {
     cudaDeviceSynchronize();
 }
 
-/**
- * @brief Launch a kernel to generate a velocity-magnitude grayscale image.
- *
- * Converts the velocity magnitude at each node to a grayscale value and stores
- * the result in a host-accessible visualization buffer.
- */
 unsigned char* Field::get_visual(float max) {
     cudaError_t err;
     convert_visual<<<gridSize, blockSize>>>(vel, visual_buffer, max);
@@ -462,14 +349,6 @@ unsigned char* Field::get_visual(float max) {
     return visual_buffer;
 }
 
-/**
- * @brief Upload obstacle mask from host to device.
- *
- * This method transfers a boolean array indicating solid (bounce-back) cells
- * to device memory for use in bounce-back boundary condition kernels.
- *
- * @param obstacle_mask Host-side boolean array (true for solid cells).
- */
 void Field::update_obstacle_mask(bool* obstacle_mask) {
     this->obstacle_mask = obstacle_mask;
 }

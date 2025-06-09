@@ -10,23 +10,11 @@
 std::string UpdateManager::current_version = "";
 std::string UpdateManager::latest_version  = "";
 
-/** 
- * @brief libcurl write callback to append data into a std::string.
- * @param contents Pointer to received data.
- * @param size      Size of each data element.
- * @param nmemb     Number of elements.
- * @param data      Destination string.
- * @return Number of bytes processed.
- */
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* data) {
     data->append(reinterpret_cast<char*>(contents), size * nmemb);
     return size * nmemb;
 }
 
-/**
- *  @brief Reads the current version from the bundled version.info file.
- * @return The current version string, or "0.0.0" if not found.
- */
 std::string UpdateManager::GetCurrentVersion() {
     if (!current_version.empty()) 
         return current_version;
@@ -48,10 +36,6 @@ std::string UpdateManager::GetCurrentVersion() {
     return current_version;
 }
 
-/**
- * @brief Checks GitHub for a newer release tag.
- * @return True if a newer version is available.
- */
 bool UpdateManager::CheckForUpdate() {
     current_version = GetCurrentVersion();
     latest_version  = GetLatestVersion();
@@ -62,10 +46,6 @@ bool UpdateManager::CheckForUpdate() {
     return (!latest_version.empty() && current_version != latest_version);
 }
 
-/**
- * @brief Downloads the latest release archive to a temporary path.
- * @return True on successful download and checksum verification.
- */
 bool UpdateManager::DownloadUpdate() {
     std::string url     = "https://github.com/buklinfur/2D-physics/releases/download/"
                           + latest_version + "/lbm-linux-latest.tar.gz";
@@ -92,31 +72,17 @@ bool UpdateManager::DownloadUpdate() {
     return VerifyChecksum(tmpPath);
 }
 
-/** 
- * @brief Verifies the downloaded file's checksum.
- *        Currently is a mock-function.
- * @param path Local path to the downloaded archive.
- * @return True if checksum matches (stubbed to always true).
- */
 bool UpdateManager::VerifyChecksum(const std::string& path) {
     std::cout << "Skipping checksum verification for debugging" << std::endl;
     return true;
 }
 
-/**
- * @brief Executes the update installation script and exits.
- *        This will replace the running binary with the new version.
- */
 void UpdateManager::ApplyUpdate() {
     std::cout << "Applying update..." << std::endl;
     system("sh UpdateLoader/scripts/update.sh");
     exit(0);
 }
 
-/** 
- * @brief Fetches the latest GitHub release tag name. 
- * @return Tag string (e.g. "v1.2.3") or empty on failure.
- */
 std::string UpdateManager::GetLatestVersion() {
     CURL* curl       = curl_easy_init();
     std::string resp;
