@@ -52,15 +52,12 @@ __device__ float equilibrium(float density,float weight,float e1, float e2,float
 }
 
 /**
- * @brief Compute equilibrium distribution function for a D2Q9 model.
+ * @brief Compute fluid density and velocity at each node.
  *
- * @param density Fluid density at a node.
- * @param weight Lattice weight for the direction.
- * @param e1 x-component of discrete velocity direction.
- * @param e2 y-component of discrete velocity direction.
- * @param vel1 x-component of macroscopic velocity.
- * @param vel2 y-component of macroscopic velocity.
- * @return Equilibrium distribution function value for the given direction.
+ * @param f_in Input distribution functions.
+ * @param vel Output buffer for velocities (2 components per node).
+ * @param density Output buffer for scalar densities.
+ * @param e Discrete velocity vectors (D2Q9 model, 18 elements).
  */
 __global__ void cuda_density_velocity(float* f_in, float* vel, float* density, float* e) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
