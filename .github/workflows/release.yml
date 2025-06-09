@@ -14,30 +14,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Install Dependencies
-        run: sudo apt update && sudo apt install -y nvidia-cuda-toolkit libglew-dev libglfw3 libglfw3-dev
+      
+      - name: Get version tag
+        id: get_tag
+        run: echo "GIT_TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
       - name: Setup & Build
         run: |
           cd ProjectSource
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DGIT_TAG=${{ env.GIT_TAG }}
           cmake --build build --config Release
-
-      - name: Dubug - list build artifacts
-        run: |
-          cd ProjectSource/build
-          ls -l
 
       - name: Package
         run: |
           cd ProjectSource/build
-          tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz executables
-
-      - name: Debug - list files for upload
-        run: |
-          echo "Working dir: $PWD"
-          ls -l ProjectSource/build
+          mkdir -p package
+          cp executables package/
+          cp version.info package/
+          
+          tar czf "lbm-linux-Release-${{ env.GIT_TAG }}.tar.gz" -C package .
+          cp "lbm-linux-Release-${{ env.GIT_TAG }}.tar.gz" "lbm-linux-latest.tar.gz"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -50,6 +46,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ProjectSource/build/*.tar.gz
+            projectSource/build/lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz
+            ProjectSource/build/lbm-linux-latest.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
