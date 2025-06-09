@@ -1,39 +1,33 @@
-name: Build & Release
+# .github/workflows/release.yml
+
+name: Release
 
 on:
   push:
-    branches: ["master", "release"]
-    tags: ['v*.*.*-release', 'v*.*.*-master']
+    tags:
+      - 'v*.*.*-release'
+      - 'v*.*.*-master'
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: sudo apt update && sudo apt install -y nvidia-cuda-toolkit libglew-dev libglfw3 libglfw3-dev
-
-      - name: Configure
+      - name: Setup & Build
         run: |
           cd ProjectSource
           cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: |
-          cd ProjectSource
           cmake --build build --config Release
 
       - name: Package
         run: |
           cd ProjectSource/build
           tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz executables
-         
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -41,9 +35,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Assets
+      - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
-          files: ProjectSource/build/*.tar.gz, ProjectSource/build/*.zip
+          files: ProjectSource/build/lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
