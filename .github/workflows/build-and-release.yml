@@ -1,0 +1,56 @@
+name: Build & Release
+
+on:
+  push:
+    branches: ["master", "release"]
+    tags: ['v*.*.*-release', 'v*.*.*-master']
+    
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@v3
+
+      - name: Install Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt install -y nlohmann-json3-dev libcurl4-openssl-dev
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }} -- -j
+
+      - name: Package
+        run: |
+          cd build
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            tar czf lbm-${{ runner.os }}-${{ matrix.build_type }}-${GITHUB_REF_NAME}.tar.gz AppFacadeExec
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            tar czf lbm-${{ runner.os }}-${{ matrix.build_type }}-${GITHUB_REF_NAME}.tar.gz AppFacadeExec.app
+          else
+            7z a lbm-${{ runner.os }}-${{ matrix.build_type }}-${GITHUB_REF_NAME }}.zip AppFacadeExec.exe
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*.tar.gz, build/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

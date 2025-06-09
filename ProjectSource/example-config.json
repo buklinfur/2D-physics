@@ -1,0 +1,32 @@
+{
+  "simulation": {
+    "grid": {
+      "width":        1240,
+      "height":       1080,
+      "blockSize":    16
+    },
+    "flow": {
+      "uLB":          0.04,
+      "Re":           10.0,
+      "direction":    "LEFT_TO_RIGHT"
+    },
+    "display": {
+      "windowName":   "ok computer",
+      "vsync":        true,
+      "lim":          0.1 
+    }
+  },
+
+  "obstacles": {
+    "enable": true,
+    "shapes": [
+      {
+        "type":     "circle",
+        "centerX":  640.0,
+        "centerY":  540.0,
+        "radius":   100.0
+      }
+    ]
+  }
+}
+

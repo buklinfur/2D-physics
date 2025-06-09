@@ -13,7 +13,7 @@ string(REPLACE "." "" CC "${CC}")
 set(CMAKE_CUDA_ARCHITECTURES ${CC})
 
 add_subdirectory(CUDAModules)
-# add_subdirectory(AppFacade)
+# add_subdirectory(App)
 # add_subdirectory(UpdateLoader)
 
 file(GLOB source_files "main.cu")
