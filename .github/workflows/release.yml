@@ -1,5 +1,3 @@
-# .github/workflows/release.yml
-
 name: Release
 
 on:
@@ -26,10 +24,20 @@ jobs:
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
 
+      - name: Dubug - list build artifacts
+        run: |
+          cd ProjectSource/build
+          ls -l
+
       - name: Package
         run: |
           cd ProjectSource/build
           tar czf lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz executables
+
+      - name: Debug - list files for upload
+        run: |
+          echo "Working dir: $PWD"
+          ls -l ProjectSource/build
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -41,6 +49,7 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
-          files: ProjectSource/build/lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz
+          files: |
+            ProjectSource/build/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
