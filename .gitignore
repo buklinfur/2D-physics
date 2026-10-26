@@ -1,9 +1,12 @@
-       # IDE files
-            .idea
-            .idea/
-            .vscode/
+# IDE files
+.idea/
+.vscode/
 
-       # Production
-            build/
-            ProjectSource/build/
-            cuda-version/
+# Build output
+build/
+build-*/
+ProjectSource/build/
+cuda-version/
+
+# Frames from --dump-frames
+frames/

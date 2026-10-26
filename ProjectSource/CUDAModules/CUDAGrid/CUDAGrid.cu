@@ -1,4 +1,6 @@
 #include <chrono>
+#include <cmath>
+#include <vector>
 #include <iostream>
 #include <random>
 #include "CUDAGrid.cuh"
@@ -321,13 +323,18 @@ Field::~Field() {
 
 void Field::step() {
     cudaError_t err;
-    cuda_outflow<<<60,32>>>(f_in, static_cast<int>(flow_dir));
+    // Boundary kernels run one thread per cell of the inflow/outflow edge.
+    const int edge_threads = 32;
+    const size_t edge_len = (flow_dir == FlowDirection::LEFT_TO_RIGHT ||
+                             flow_dir == FlowDirection::RIGHT_TO_LEFT) ? height : width;
+    const int edge_blocks = static_cast<int>((edge_len + edge_threads - 1) / edge_threads);
+    cuda_outflow<<<edge_blocks, edge_threads>>>(f_in, static_cast<int>(flow_dir));
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_outflow kernel");
     cudaDeviceSynchronize();
     cuda_density_velocity<<<gridSize, blockSize>>>(f_in, vel, density, e);
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_density_velocity");
     cudaDeviceSynchronize();
-    cuda_inflow<<<60,32>>>(vel, f_in, density, weights, e, static_cast<int>(flow_dir));
+    cuda_inflow<<<edge_blocks, edge_threads>>>(vel, f_in, density, weights, e, static_cast<int>(flow_dir));
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_inflow kernel");
     cudaDeviceSynchronize();
     cuda_collision<<<gridSize,blockSize>>>(f_in, f_out, density, vel, weights, e);
@@ -336,7 +343,7 @@ void Field::step() {
     bounce_back<<<gridSize, blockSize>>>(f_in, f_out, obstacle_mask);
     err = cudaGetLastError(); CUDA_CHECK(err, "bounce_back kernel");
     cudaDeviceSynchronize();
-    cuda_streaming<<<gridSize,blockSize>>>(f_in, f_out, e, static_cast<int>(flow_dir));
+    cuda_streaming<<<gridSize,blockSize>>>(f_in, f_out, e);
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_streaming kernel");
     cudaDeviceSynchronize();
 }
@@ -351,4 +358,16 @@ unsigned char* Field::get_visual(float max) {
 
 void Field::update_obstacle_mask(bool* obstacle_mask) {
     this->obstacle_mask = obstacle_mask;
+}
+
+bool Field::velocity_is_finite() const {
+    std::vector<float> host(width * height * 2);
+    cudaError_t err = cudaMemcpy(host.data(), vel, host.size() * sizeof(float), cudaMemcpyDeviceToHost);
+    CUDA_CHECK(err, "cudaMemcpy vel (finite check)");
+    for (float v : host) {
+        if (!std::isfinite(v)) {
+            return false;
+        }
+    }
+    return true;
 }

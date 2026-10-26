@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 project(CUDAModules LANGUAGES CXX CUDA)
 
-find_package(CUDA REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 find_package(GLEW REQUIRED)
@@ -22,7 +22,7 @@ add_library(CUDADraw STATIC
 
 target_compile_features(CUDADraw PUBLIC cxx_std_17)
 set_target_properties(CUDADraw PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-target_link_libraries(CUDADraw PRIVATE OpenGL::GL GLEW::GLEW glfw cudart)
+target_link_libraries(CUDADraw PRIVATE OpenGL::GL GLEW::GLEW glfw CUDA::cudart)
 
 add_library(Obstacles STATIC
     Obstacles/Obstacles.cu

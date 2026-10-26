@@ -11,45 +11,37 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: sudo apt update && sudo apt install -y nvidia-cuda-toolkit libglew-dev libglfw3 libglfw3-dev libcurl4-openssl-dev nlohmann-json3-dev
-      
-      - name: Get version tag
-        id: get_tag
-        run: echo "GIT_TAG=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-
-      - name: Setup & Build
+      - name: Install dependencies
         run: |
-          cd ProjectSource
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DGIT_TAG=${{ env.GIT_TAG }}
-          cmake --build build --config Release
+          sudo apt-get update
+          sudo apt-get install -y nvidia-cuda-toolkit libglew-dev libglfw3-dev \
+            libcurl4-openssl-dev nlohmann-json3-dev libssl-dev
+
+      - name: Build
+        run: |
+          cmake -S ProjectSource -B build -DCMAKE_BUILD_TYPE=Release \
+                -DGIT_TAG="${GITHUB_REF_NAME}" -DCUDA_ARCH_LIST="60;70;75;80;86;89"
+          cmake --build build -j "$(nproc)"
 
       - name: Package
         run: |
-          cd ProjectSource/build
-          mkdir -p package
-          cp executables package/
-          cp version.info package/
-          
-          tar czf "lbm-linux-Release-${{ env.GIT_TAG }}.tar.gz" -C package .
-          cp "lbm-linux-Release-${{ env.GIT_TAG }}.tar.gz" "lbm-linux-latest.tar.gz"
+          mkdir -p package/UpdateLoader/scripts
+          cp build/executables build/version.info package/
+          cp ProjectSource/UpdateLoader/scripts/update.sh package/UpdateLoader/scripts/
+          tar czf "lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz" -C package .
+          cp "lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz" lbm-linux-latest.tar.gz
+          sha256sum lbm-linux-*.tar.gz | tee SHA256SUMS
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+      # GitHub also publishes a sha256 digest for every asset; the self-updater
+      # verifies lbm-linux-latest.tar.gz against it. SHA256SUMS is for humans.
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            projectSource/build/lbm-linux-Release-${GITHUB_REF_NAME}.tar.gz
-            ProjectSource/build/lbm-linux-latest.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            lbm-linux-Release-${{ github.ref_name }}.tar.gz
+            lbm-linux-latest.tar.gz
+            SHA256SUMS

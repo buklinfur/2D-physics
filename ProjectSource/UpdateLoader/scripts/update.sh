@@ -1,49 +1,49 @@
-# Get absolute path of executable
-APP_DIR=$(dirname "$(readlink -f "$0")")/../..
-LOCK_FILE="/tmp/lbm_update.lock"
+#!/bin/sh
+# Install a downloaded LBMSim release next to the running binary.
+#
+# Usage: update.sh <app-dir> <archive.tar.gz>
+#
+# Called by UpdateManager::ApplyUpdate() after the archive's SHA-256 has been
+# verified. The binary is replaced with rename(), which is safe while the old
+# binary is still running; the caller then execv()s the new one.
+set -u
 
-# Prevent concurrent updates
-if [ -f "$LOCK_FILE" ]; then
-    echo "Update already in progress"
+APP_DIR=${1:?usage: update.sh <app-dir> <archive>}
+ARCHIVE=${2:?usage: update.sh <app-dir> <archive>}
+LOCK_FILE=/tmp/lbm_update.lock
+
+if [ -e "$LOCK_FILE" ]; then
+    echo "Update already in progress ($LOCK_FILE exists)" >&2
     exit 1
 fi
 touch "$LOCK_FILE"
-
-# Wait for main process to exit
-TIMEOUT=10
-while pgrep -f "executables" && [ $TIMEOUT -gt 0 ]; do
-    sleep 1
-    ((TIMEOUT--))
-done
-
-if [ $TIMEOUT -eq 0 ]; then
-    echo "Failed to terminate running process"
-    rm "$LOCK_FILE"
-    exit 1
-fi
-
-# Extract update to temporary directory
 TMP_DIR=$(mktemp -d)
-tar -xzf /tmp/lbm_update.tar.gz -C "$TMP_DIR"
+trap 'rm -rf "$TMP_DIR"; rm -f "$LOCK_FILE"' EXIT
 
-# Verify files exist
-if [ ! -f "$TMP_DIR/executables" ] || [ ! -f "$TMP_DIR/version.info" ]; then
-    echo "Update package corrupted"
-    rm -rf "$TMP_DIR" "$LOCK_FILE"
+if ! tar -xzf "$ARCHIVE" -C "$TMP_DIR"; then
+    echo "Cannot unpack $ARCHIVE" >&2
     exit 1
 fi
 
-# Atomic file replacement
-cp -f "$TMP_DIR/version.info" "$APP_DIR/"
-sync
-cp -f "$TMP_DIR/executables" "$APP_DIR/"
-sync
+if [ ! -f "$TMP_DIR/executables" ] || [ ! -f "$TMP_DIR/version.info" ]; then
+    echo "Update package is incomplete (expected executables and version.info)" >&2
+    exit 1
+fi
 
-# Cleanup
-rm -rf "$TMP_DIR" /tmp/lbm_update.tar.gz
-rm "$LOCK_FILE"
+# Copy next to the target first, then rename over it: atomic on the same filesystem.
+cp "$TMP_DIR/executables" "$APP_DIR/executables.new" &&
+    chmod +x "$APP_DIR/executables.new" &&
+    mv -f "$APP_DIR/executables.new" "$APP_DIR/executables" || exit 1
 
-# Restart with new version
-echo "Restarting with version: $(cat "$APP_DIR/version.info")"
-cd "$APP_DIR"
-exec ./executables "$@"
+cp "$TMP_DIR/version.info" "$APP_DIR/version.info.new" &&
+    mv -f "$APP_DIR/version.info.new" "$APP_DIR/version.info" || exit 1
+
+# Newer packages ship this script too; keep it up to date for the next update.
+if [ -f "$TMP_DIR/UpdateLoader/scripts/update.sh" ]; then
+    mkdir -p "$APP_DIR/UpdateLoader/scripts"
+    cp "$TMP_DIR/UpdateLoader/scripts/update.sh" "$APP_DIR/UpdateLoader/scripts/update.sh.new" &&
+        mv -f "$APP_DIR/UpdateLoader/scripts/update.sh.new" "$APP_DIR/UpdateLoader/scripts/update.sh"
+fi
+
+rm -f "$ARCHIVE"
+echo "Installed version: $(cat "$APP_DIR/version.info")"

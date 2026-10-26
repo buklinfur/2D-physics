@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # GitHub-hosted runners have no GPU: this job checks that everything
+    # compiles and links; it does not run the simulation.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags are needed for version.info
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nvidia-cuda-toolkit libglew-dev libglfw3-dev \
+            libcurl4-openssl-dev nlohmann-json3-dev libssl-dev libopengl0
+
+      - name: Configure
+        run: cmake -S ProjectSource -B build -DCMAKE_BUILD_TYPE=Release -DCUDA_ARCH_LIST="60;75;86"
+
+      - name: Build
+        run: cmake --build build -j "$(nproc)"
+
+      - name: Smoke-test the CLI (no GPU needed)
+        run: |
+          ./build/executables --help
+          ./build/executables --bogus-flag && exit 1 || test $? -eq 2
+
+      - name: Build CPU reference benchmark
+        run: g++ -O2 -std=c++17 -w benchmarks/cpu_reference/alpha_cpu_bench.cpp -o alpha_cpu_bench && ./alpha_cpu_bench 64 36 5 1
+
+      - name: Check shell scripts
+        run: |
+          sh -n ProjectSource/UpdateLoader/scripts/update.sh
+          bash -n benchmarks/run_benchmarks.sh
+          bash -n tools/make_demo_gif.sh
