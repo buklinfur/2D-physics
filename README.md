@@ -150,24 +150,32 @@ hardware and toolchain to `hardware.txt`, runs every grid size several times and
 are measured: CUDA on WSL does not support CUDA–OpenGL interop, so the window and `--render` need
 native Linux (`--dump-frames` works everywhere).
 
-<!-- TODO(bench): replace with benchmarks/results/<date>-<host>/summary.md from a real run -->
-**Results:** not measured yet.
+**Results** — RTX 3060 12 GB (driver 572.60, CUDA 12.8), Ryzen 7 7700, Ubuntu 24.04 under WSL2;
+2000 timed steps after 200 warm-up, median of 3 runs. Raw data and the full configuration:
+[`benchmarks/results/2026-10-27-rtx3060-wsl2`](benchmarks/results/2026-10-27-rtx3060-wsl2).
 
-| Grid | Nodes | GPU ms/step | GPU MLUPS | GPU + render, FPS | CPU prototype ms/step | Speed-up vs CPU prototype |
+| Grid | Nodes | GPU ms/step | GPU MLUPS | Steps/s | CPU prototype ms/step | Speed-up vs CPU prototype |
 |---|---:|---:|---:|---:|---:|---:|
-| 640×360 | 0.23 M | TODO | TODO | TODO | TODO | TODO |
-| 960×540 | 0.52 M | TODO | TODO | TODO | TODO | TODO |
-| 1280×720 | 0.92 M | TODO | TODO | TODO | TODO | TODO |
-| 1920×1080 | 2.07 M | TODO | TODO | TODO | TODO | TODO |
+| 640×360 | 0.23 M | 0.68 | 341 | 1,481 | 7.9 | 12× |
+| 960×540 | 0.52 M | 1.17 | 444 | 856 | 18.5 | 16× |
+| 1280×720 | 0.92 M | 1.88 | 489 | 531 | 33.2 | 18× |
+| 1920×1080 | 2.07 M | 3.96 | 523 | 252 | 75.6 | 19× |
+
+Run-to-run spread was within ±4 %. The render column is missing because CUDA–OpenGL interop is not
+available under WSL2; FPS with drawing still has to be measured on native Linux. Smaller grids reach
+lower MLUPS because the fixed cost of launching and synchronizing six kernels per step weighs more.
 
 **About the CPU column.** It is the project's first prototype from the `alpha-version` branch, run
 unchanged through [`benchmarks/cpu_reference`](benchmarks/cpu_reference/alpha_cpu_bench.cpp):
 one thread, `double`, nested `std::vector` storage. It answers "how far did the GPU rewrite take the
 project", not "GPU vs. a tuned CPU solver"; an OpenMP/SIMD CPU code would narrow the gap considerably.
 
-Known headroom in the GPU code: populations are stored per node (`[node][9]`), so warps read
-strided memory; a structure-of-arrays layout, fused collide-and-stream, and dropping the
-`cudaDeviceSynchronize()` after every kernel are the obvious next steps.
+**Headroom.** The step moves roughly 200 bytes per node through global memory (separate kernels
+for moments, collision, bounce-back and streaming), so 523 MLUPS is about 105 GB/s, around 30 % of the
+RTX 3060's 360 GB/s. Populations are stored per node (`[node][9]`), so warps read strided memory.
+A structure-of-arrays layout, a fused collide-and-stream kernel (about 72 bytes per node) and dropping
+the `cudaDeviceSynchronize()` after every kernel are the obvious next steps. These figures are
+estimates from the code, not profiler measurements.
 
 ## Recording the demo
 

@@ -86,7 +86,7 @@ echo "repeat,width,height,steps,mode,total_s,ms_per_step,mlups,steps_per_s,finit
 run_case() {
     local repeat=$1; shift
     local line
-    line=$("$@" 2>>"$OUT/errors.log" | tail -1) || true
+    line=$("$@" 2>>"$OUT/stderr.log" | tail -1) || true
     if [[ "$line" =~ ^[0-9]+,[0-9]+, ]]; then
         echo "$repeat,$line" >> "$RAW"
         return 0
@@ -99,7 +99,7 @@ run_case() {
 run_case() {
     local repeat=$1; shift
     local line
-    line=$("$@" 2>>"$OUT/errors.log" | tail -1) || true
+    line=$("$@" 2>>"$OUT/stderr.log" | tail -1) || true
     if [[ "$line" =~ ^[0-9]+,[0-9]+, ]]; then
         echo "$repeat,$line" >> "$RAW"
         return 0
@@ -112,12 +112,12 @@ for size in $SIZES; do
     for r in $(seq 1 "$REPEATS"); do
         echo "==> GPU compute  $size  run $r/$REPEATS"
         run_case "$r" "$BIN" --benchmark --csv --size "$size" --steps "$STEPS" --warmup "$WARMUP" ||
-            { echo "GPU compute run failed, see $OUT/errors.log" >&2; exit 1; }
+            { echo "GPU compute run failed, see $OUT/stderr.log" >&2; exit 1; }
         if [ "$RENDER" = 1 ]; then
             echo "==> GPU render   $size  run $r/$REPEATS"
             if ! run_case "$r" "$BIN" --benchmark --render --csv --size "$size" --steps "$STEPS" --warmup "$WARMUP"; then
                 echo "Render benchmark failed (no CUDA-OpenGL interop here? WSL does not support it);" \
-                     "skipping render runs. Details: $OUT/errors.log" >&2
+                     "skipping render runs. Details: $OUT/stderr.log" >&2
                 RENDER=0
             fi
         fi
@@ -125,7 +125,7 @@ for size in $SIZES; do
     if [ "$CPU" = 1 ]; then
         echo "==> CPU prototype $size ($CPU_STEPS steps)"
         run_case 1 "$BUILD/alpha_cpu_bench" "$w" "$h" "$CPU_STEPS" 2 ||
-            echo "CPU prototype run failed for $size, see $OUT/errors.log" >&2
+            echo "CPU prototype run failed for $size, see $OUT/stderr.log" >&2
     fi
 done
 
