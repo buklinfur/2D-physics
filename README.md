@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/buklinfur/2D-physics/actions/workflows/build.yml/badge.svg)](https://github.com/buklinfur/2D-physics/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/buklinfur/2D-physics)](https://github.com/buklinfur/2D-physics/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 LBMSim simulates low-Mach (nearly incompressible) 2D flow around obstacles with the lattice Boltzmann
 method (D2Q9, BGK) entirely on an NVIDIA GPU and shows the velocity field live while it runs. Every simulation step runs as a
@@ -12,7 +13,7 @@ interop, so the field never travels back to the CPU.
 <p align="center"><img src="docs/media/demo.gif" alt="Flow past a cylinder in LBMSim" width="800"></p>
 -->
 
-**Status:** v0.1.0, technical preview. <!-- TODO(status): decide with co-author -->
+**Status:** v0.1.0, technical preview — the core works; layout, performance and features are still being reworked.
 
 - Live view of a 1920×1080 lattice by default, any size via `--size`
 - Obstacles: circles, rectangles and arbitrary sets of solid cells, combined freely
@@ -211,14 +212,12 @@ Running a release build needs the NVIDIA driver plus the runtime libraries:
 
 ## Authors
 
-<!-- TODO(authors): confirm names and split with the co-author -->
 - **Valeriy Zaichikov** ([@buklinfur](https://github.com/buklinfur)) — modular CMake structure and
   module split (`CUDAFacade`, obstacle factory), self-update loader, CI/CD release pipeline,
   refactoring and documentation for v0.1.0, benchmark mode and tooling.
-- **[@ribus2005](https://github.com/ribus2005)** — SFML visualiser and CPU prototype, LBM kernels
+- **Lev Moryakin** ([@ribus2005](https://github.com/ribus2005)) — SFML visualiser and CPU prototype, LBM kernels
   of the CUDA version, resizable grid and flow directions.
 
 ## License
 
-<!-- TODO(license): no license chosen yet; until one is added, all rights are reserved by the authors. -->
-Not yet licensed.
+[MIT](LICENSE) © 2025 Valeriy Zaichikov, Lev Moryakin
