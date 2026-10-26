@@ -148,6 +148,8 @@ second. A final NaN/Inf check marks unstable runs.
 hardware and toolchain to `hardware.txt`, runs every grid size several times and writes medians to
 `benchmarks/results/<date>-<host>/summary.md`. Under WSL2 only the compute-only and CPU columns
 are measured: CUDA on WSL does not support CUDA–OpenGL interop, so the window and `--render` need
+native Linux (`--dump-frames` works everywhere). Under WSL2 only the compute-only and CPU columns
+are measured: CUDA on WSL does not support CUDA–OpenGL interop, so the window and `--render` need
 native Linux.
 
 <!-- TODO(bench): replace with benchmarks/results/<date>-<host>/summary.md from a real run -->

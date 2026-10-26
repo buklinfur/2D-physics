@@ -42,7 +42,7 @@ fi
 
 OUT="$ROOT/benchmarks/results/$(date +%Y-%m-%d)-$(hostname -s)"
 BUILD="$ROOT/build-bench"
-mkdir -p "$OUT"
+mkdir -p "$OUT" "$BUILD"
 
 echo "==> Building LBMSim (Release) in $BUILD"
 cmake -S "$ROOT/ProjectSource" -B "$BUILD" -DCMAKE_BUILD_TYPE=Release \
@@ -80,6 +80,19 @@ cat "$OUT/hardware.txt"
 
 RAW="$OUT/raw.csv"
 echo "repeat,width,height,steps,mode,total_s,ms_per_step,mlups,steps_per_s,finite" > "$RAW"
+
+# Run one measurement; append "<repeat>,<csv>" only if it produced a CSV line.
+# Exit code 3 (NaN in the field) still yields a line marked "nan".
+run_case() {
+    local repeat=$1; shift
+    local line
+    line=$("$@" 2>>"$OUT/errors.log" | tail -1) || true
+    if [[ "$line" =~ ^[0-9]+,[0-9]+, ]]; then
+        echo "$repeat,$line" >> "$RAW"
+        return 0
+    fi
+    return 1
+}
 
 # Run one measurement; append "<repeat>,<csv>" only if it produced a CSV line.
 # Exit code 3 (NaN in the field) still yields a line marked "nan".
