@@ -40,7 +40,7 @@ __global__ void cuda_density_velocity(float* f_in, float* vel, float* density, f
  * @param e Discrete velocity directions.
  * @param flow_dir Direction of flow (0:left, 1:right, 2:bottom, 3:top).
  */
-__global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weights, float* e);
+__global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weights, float* e, int flow_dir);
 
 /**
  * @brief Apply zero-gradient outflow boundary condition.
@@ -48,7 +48,7 @@ __global__ void cuda_inflow(float* vel, float* f_in, float* density, float* weig
  * @param f_in Distribution functions (to modify at boundary).
  * @param flow_dir Direction of flow (0:left, 1:right, 2:bottom, 3:top).
  */
-__global__ void cuda_outflow(float* f_in);
+__global__ void cuda_outflow(float* f_in, int flow_dir);
 
 /**
  * @brief Perform BGK collision step to relax f_in toward equilibrium.
@@ -68,7 +68,6 @@ __global__ void cuda_collision(float* f_in, float* f_out, float* density, float*
  * @param f_in Updated input distribution functions.
  * @param f_out Post-collision distribution functions.
  * @param e Discrete velocity vectors.
- * @param flow_dir Flow direction used to wrap around (periodic).
  */
 __global__ void cuda_streaming(float* f_in, float* f_out, float* e);
 
@@ -88,7 +87,7 @@ __global__ void convert_visual(float *vel, unsigned char *visual_buffer, float m
  * @param f_out Output buffer after reflection.
  * @param obstacle_mask Boolean mask indicating solid nodes.
  */
-__global__ void bounce_back(float* f_in, float* f_out, float *obstacle, int obstacle_size);
+__global__ void bounce_back(float* f_in, float* f_out, bool* obstacle_mask);
 
 /**
  * @brief Initialize device-side simulation constants.

@@ -336,7 +336,7 @@ void Field::step() {
     bounce_back<<<gridSize, blockSize>>>(f_in, f_out, obstacle_mask);
     err = cudaGetLastError(); CUDA_CHECK(err, "bounce_back kernel");
     cudaDeviceSynchronize();
-    cuda_streaming<<<gridSize,blockSize>>>(f_in, f_out, e, static_cast<int>(flow_dir));
+    cuda_streaming<<<gridSize,blockSize>>>(f_in, f_out, e);
     err = cudaGetLastError(); CUDA_CHECK(err, "cuda_streaming kernel");
     cudaDeviceSynchronize();
 }
