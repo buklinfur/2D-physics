@@ -33,9 +33,9 @@ int main(int argc, char** argv) {
                     if (choice.empty() || choice == "y" || choice == "Y") {
                         std::cout << "\nDownloading update...\n";
                         if (UpdateManager::DownloadUpdate()) {
-                            std::cout << "✅ Update ready. Restarting...\n";
-                            UpdateManager::ApplyUpdate();
-                            return 1;
+                            UpdateManager::ApplyUpdate(argv);  // execv()s the new binary on success
+                            std::cerr << "❌ Update failed.\n";
+                            break;
                         } else {
                             std::cerr << "❌ Update failed.\n";
                             break;
