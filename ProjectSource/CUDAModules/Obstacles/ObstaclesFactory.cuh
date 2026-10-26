@@ -72,5 +72,12 @@ public:
 private:
     size_t width_, height_;
     std::vector<std::unique_ptr<Obstacle>> obstacles_;
-    bool* obstacle_mask_;
+    bool* obstacle_mask_;              ///< Device-side mask read by the bounce-back kernel.
+    std::unique_ptr<bool[]> host_mask_; ///< Host-side union of all obstacles added so far.
+
+    /**
+     * @brief Upload the accumulated host mask to the device.
+     * @param what Obstacle kind, used in the error message.
+     */
+    void upload_mask(const char* what);
 };
