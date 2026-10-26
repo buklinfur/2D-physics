@@ -29,20 +29,22 @@ interop, so the field never travels back to the CPU.
 
 ### The method in one paragraph
 
-The fluid is represented by particle distribution functions $f_i(\mathbf{x}, t)$ on a square
-lattice, one per discrete velocity $\mathbf{e}_i$ of the **D2Q9** stencil (rest, 4 axis, 4 diagonal
+The fluid is represented by particle distribution functions $`f_i(\mathbf{x}, t)`$ on a square
+lattice, one per discrete velocity $`\mathbf{e}_i`$ of the **D2Q9** stencil (rest, 4 axis, 4 diagonal
 directions). Each step relaxes them towards the local equilibrium (BGK collision) and moves them to
 the neighbouring node (streaming):
 
-$$
-f_i(\mathbf{x} + \mathbf{e}_i,\, t+1) = f_i - \omega\,\bigl(f_i - f_i^{\mathrm{eq}}(\rho, \mathbf{u})\bigr),
-\qquad
-f_i^{\mathrm{eq}} = w_i\,\rho\left(1 + 3\,\mathbf{e}_i\!\cdot\!\mathbf{u} + \tfrac{9}{2}(\mathbf{e}_i\!\cdot\!\mathbf{u})^2 - \tfrac{3}{2}\,\mathbf{u}^2\right)
-$$
+```math
+f_i(\mathbf{x} + \mathbf{e}_i,\ t + 1) = f_i - \omega \left( f_i - f_i^{\mathrm{eq}}(\rho, \mathbf{u}) \right)
+```
 
-Density and velocity are moments of $f$: $\rho = \sum_i f_i$, $\rho\mathbf{u} = \sum_i f_i\mathbf{e}_i$.
-The relaxation rate comes from the Reynolds number: $\nu = u_{LB}\,r / Re$, $\omega = 1/(3\nu + 1/2)$,
-with the characteristic length $r = (H-1)/9$.
+```math
+f_i^{\mathrm{eq}} = w_i \rho \left( 1 + 3 (\mathbf{e}_i \cdot \mathbf{u}) + \frac{9}{2} (\mathbf{e}_i \cdot \mathbf{u})^2 - \frac{3}{2} \mathbf{u}^2 \right)
+```
+
+Density and velocity are moments of $`f`$: $`\rho = \sum_i f_i`$, $`\rho \mathbf{u} = \sum_i f_i \mathbf{e}_i`$.
+The relaxation rate comes from the Reynolds number: $`\nu = u_{\mathrm{LB}} \, r / \mathrm{Re}`$,
+$`\omega = 1 / (3\nu + 1/2)`$, with the characteristic length $`r = (H - 1)/9`$.
 
 Boundaries: velocity inlet on the left (Zou/He-style non-equilibrium bounce-back, with a small
 sinusoidal perturbation of the inflow profile), zero-gradient outlet on the right, full-way
