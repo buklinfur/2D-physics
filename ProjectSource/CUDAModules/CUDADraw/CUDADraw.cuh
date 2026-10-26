@@ -40,4 +40,10 @@ public:
      * @return True if the window has not been signaled to close.
      */
     bool alive();
+
+    /**
+     * @brief Checks whether the window and GL context were created successfully.
+     * @return True if the constructor managed to open a window.
+     */
+    bool ok() const;
 };

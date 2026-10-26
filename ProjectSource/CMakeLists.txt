@@ -1,6 +1,14 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 project(LBMSim LANGUAGES CXX CUDA)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
 
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE "GLVND")
@@ -34,12 +42,20 @@ else()
   endif()
 endif()
 
-execute_process(
-  COMMAND git describe --tags --abbrev=0
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  OUTPUT_VARIABLE GIT_TAG
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+# Version written to version.info: -DGIT_TAG=... (used by CI) wins, otherwise the
+# nearest git tag. The self-updater compares this string with the latest release tag.
+if (NOT GIT_TAG)
+  execute_process(
+    COMMAND git describe --tags --abbrev=0
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_TAG
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+endif()
+if (NOT GIT_TAG)
+  message(WARNING "No git tag found (shallow clone?); version.info will be empty and the app will report 0.0.0")
+endif()
 
 file(WRITE ${CMAKE_BINARY_DIR}/version.info "${GIT_TAG}")
 
@@ -56,4 +72,3 @@ target_link_libraries(executables PRIVATE
                                 CUDADraw 
                                 Obstacles
                                 UpdateLoader)
-include_directories(include)

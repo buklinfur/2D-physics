@@ -91,3 +91,7 @@ void GLVisual::draw(unsigned char* cuda_buffer) {
 bool GLVisual::alive() {
     return !glfwWindowShouldClose(window);
 }
+
+bool GLVisual::ok() const {
+    return window != nullptr && cuda_tex_resource != nullptr;
+}

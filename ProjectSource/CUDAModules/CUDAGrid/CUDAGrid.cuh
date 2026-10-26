@@ -157,6 +157,16 @@ public:
      */
     void update_obstacle_mask(bool* obstacle_mask);
 
+    /**
+     * @brief Copy the velocity field to the host and check it for NaN/Inf.
+     *
+     * Intended as a sanity check after benchmarks; it is not called during
+     * normal stepping.
+     *
+     * @return True if every velocity component is finite.
+     */
+    bool velocity_is_finite() const;
+
 private:
     size_t width, height;
     dim3 blockSize;

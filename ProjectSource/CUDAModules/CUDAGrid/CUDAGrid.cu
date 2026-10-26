@@ -1,4 +1,6 @@
 #include <chrono>
+#include <cmath>
+#include <vector>
 #include <iostream>
 #include <random>
 #include "CUDAGrid.cuh"
@@ -356,4 +358,16 @@ unsigned char* Field::get_visual(float max) {
 
 void Field::update_obstacle_mask(bool* obstacle_mask) {
     this->obstacle_mask = obstacle_mask;
+}
+
+bool Field::velocity_is_finite() const {
+    std::vector<float> host(width * height * 2);
+    cudaError_t err = cudaMemcpy(host.data(), vel, host.size() * sizeof(float), cudaMemcpyDeviceToHost);
+    CUDA_CHECK(err, "cudaMemcpy vel (finite check)");
+    for (float v : host) {
+        if (!std::isfinite(v)) {
+            return false;
+        }
+    }
+    return true;
 }
