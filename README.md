@@ -9,9 +9,12 @@ method (D2Q9, BGK) entirely on an NVIDIA GPU and shows the velocity field live w
 chain of CUDA kernels; the image is written straight into an OpenGL texture through CUDA–OpenGL
 interop, so the field never travels back to the CPU.
 
-<!-- TODO(demo): add docs/media/demo.gif (see "Recording the demo" below) and uncomment:
-<p align="center"><img src="docs/media/demo.gif" alt="Flow past a cylinder in LBMSim" width="800"></p>
--->
+<p align="center">
+  <img src="docs/media/demo.gif" alt="LBMSim: flow past a cylinder, colour shows speed" width="640">
+  <br>
+  <sub>960×540 lattice, Re = 100, first 6000 steps (every 40th shown), colour = flow speed.
+  Pressure waves spread from the impulsive start, then a recirculation zone forms behind the cylinder.</sub>
+</p>
 
 **Status:** v0.1.0, technical preview — the core works; layout, performance and features are still being reworked.
 
@@ -179,14 +182,17 @@ estimates from the code, not profiler measurements.
 
 ## Recording the demo
 
+The GIF above was made with:
+
 ```bash
 ./build/executables --dump-frames frames --size 960x540 --re 100 --steps 6000 --every 20
-tools/make_demo_gif.sh frames docs/media/demo.gif --width 800          # grayscale, as in the app
-tools/make_demo_gif.sh frames docs/media/demo.mp4 --color              # or a coloured MP4
+tools/make_demo_gif.sh frames docs/media/demo.gif --color --width 640 --fps 15 --take 2
 ```
 
-Frames are the same speed image the window shows, origin at the bottom. Higher `--re` gives an
-unsteady wake; if the field check reports NaN, lower `--re` or `--ulb`.
+Without `--color` the GIF keeps the app's grayscale; an `.mp4` output name gives a video instead.
+Frames are the same speed image the window shows, origin at the bottom. 6000 steps only cover the
+start-up; periodic vortex shedding needs a much longer run (tens of thousands of steps, larger
+`--every`). If the field check reports NaN, lower `--re` or `--ulb`.
 
 ## Releases and self-update
 
