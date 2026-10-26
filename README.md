@@ -146,7 +146,9 @@ second. A final NaN/Inf check marks unstable runs.
 
 [`benchmarks/run_benchmarks.sh`](benchmarks/run_benchmarks.sh) builds a Release binary, records the
 hardware and toolchain to `hardware.txt`, runs every grid size several times and writes medians to
-`benchmarks/results/<date>-<host>/summary.md`.
+`benchmarks/results/<date>-<host>/summary.md`. Under WSL2 only the compute-only and CPU columns
+are measured: CUDA on WSL does not support CUDA–OpenGL interop, so the window and `--render` need
+native Linux.
 
 <!-- TODO(bench): replace with benchmarks/results/<date>-<host>/summary.md from a real run -->
 **Results:** not measured yet.
